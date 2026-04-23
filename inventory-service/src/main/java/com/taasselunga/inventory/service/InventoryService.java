@@ -1,0 +1,107 @@
+package com.taasselunga.inventory.service;
+
+import com.taasselunga.inventory.config.RabbitMQConfig;
+import com.taasselunga.inventory.domain.Product;
+import com.taasselunga.inventory.domain.Quantity;
+import com.taasselunga.inventory.domain.Stock;
+import com.taasselunga.inventory.domain.StockThreshold;
+import com.taasselunga.inventory.dto.ProductRequestDTO;
+import com.taasselunga.inventory.dto.ProductResponseDTO;
+import com.taasselunga.inventory.repository.ProductRepository;
+import com.taasselunga.inventory.repository.StockRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class InventoryService {
+
+    private final StockRepository stockRepository;
+    private final ProductRepository productRepository; // Aggiunto il repository dei prodotti
+    private final RabbitTemplate rabbitTemplate;
+
+    // --- LOGICA PER IL FRONTEND DI ALESSIA ---
+    public List<ProductResponseDTO> getAllProductsWithStock() {
+        return productRepository.findAll().stream().map(product -> {
+            // Cerca la giacenza, se non c'è mette 0 di default
+            Stock stock = stockRepository.findByProductId(product.getId()).orElse(null);
+
+            Integer qty = (stock != null) ? stock.getAvailableQuantity().getValue() : 0;
+            Integer threshold = (stock != null) ? stock.getThreshold().getMinimumLevel() : 0;
+
+            return new ProductResponseDTO(
+                    product.getId(),
+                    product.getName(),
+                    product.getCategory(),
+                    qty,
+                    threshold,
+                    product.getPrice(),
+                    product.getImageUrl()
+            );
+        }).toList();
+    }
+
+    // --- LOGICA PER IL PALMARE DI ANTONIO ---
+    @Transactional
+    public void receiveGoods(Long productId, Integer quantityValue) {
+        Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("Prodotto non trovato in magazzino"));
+
+        // Aggiornamento istantaneo delle giacenze
+        stock.increase(new Quantity(quantityValue));
+        stockRepository.save(stock);
+
+        System.out.println("Merce ricevuta. Nuova giacenza: " + stock.getAvailableQuantity().getValue());
+
+        // Controllo soglia e notifica asincrona via RabbitMQ
+        if (stock.isBelowThreshold()) {
+            String message = "Prodotto ID " + productId + " è sotto scorta! Giacenza attuale: " + stock.getAvailableQuantity().getValue();
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.LOW_STOCK_ROUTING_KEY, message);
+            System.out.println("Allarme lanciato: " + message);
+        }
+    }
+
+    @Transactional
+    public void addProduct(ProductRequestDTO request) {
+
+        Product product = new Product(request.name(), request.category(), request.price(), request.imageUrl());
+        product = productRepository.save(product);
+
+        // 2. Salva lo stock iniziale collegato
+        Stock stock = new Stock(product.getId(), new Quantity(request.initialStock()), new StockThreshold(request.threshold()));
+        stockRepository.save(stock);
+
+        System.out.println("Nuovo prodotto creato: " + product.getName());
+    }
+
+    @Transactional
+    public void deductStock(Long productId, Integer quantitySold) {
+        // 1. Troviamo il magazzino del prodotto
+        Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("Prodotto non trovato nel magazzino"));
+
+        // 2. Creiamo l'oggetto Quantity da scalare
+        Quantity soldQty = new Quantity(quantitySold);
+
+        // 3. Scaliamo la quantità (il tuo metodo "decrease" gestirà in automatico gli errori e i movimenti!)
+        stock.decrease(soldQty);
+        stockRepository.save(stock);
+
+        System.out.println("📦 Scalati " + quantitySold + " pezzi dal prodotto " + productId +
+                ". Nuova giacenza: " + stock.getAvailableQuantity().getValue());
+
+        // 4. LA MAGIA: Usiamo il tuo metodo "isBelowThreshold" per l'allarme!
+        if (stock.isBelowThreshold()) {
+            String alertMsg = "ATTENZIONE: Il prodotto ID " + productId +
+                    " è sceso sotto la soglia minima! (Giacenza: " +
+                    stock.getAvailableQuantity().getValue() + ")";
+
+            rabbitTemplate.convertAndSend("stock.alerts.queue", alertMsg);
+            System.out.println("🚨 Allarme inviato a RabbitMQ per il prodotto " + productId);
+        }
+    }
+}
