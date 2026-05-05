@@ -24,7 +24,7 @@ public class DataSeeder {
                 repository.save(stockLatte);
                 repository.save(stockUova);
 
-                System.out.println("✅ Dati fittizi inseriti nel database: Latte Parmalat e Uova AIA pronti nel magazzino!");
+                System.out.println("Dati fittizi inseriti nel database: Latte Parmalat e Uova AIA pronti nel magazzino!");
             }
         };
     }

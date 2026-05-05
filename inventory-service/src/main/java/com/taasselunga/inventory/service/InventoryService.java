@@ -80,28 +80,38 @@ public class InventoryService {
 
     @Transactional
     public void deductStock(Long productId, Integer quantitySold) {
-        // 1. Troviamo il magazzino del prodotto
+        // Controllo sulla quantità non negativo
+        if (quantitySold == null || quantitySold <= 0) {
+            throw new IllegalArgumentException("La quantità da scalare deve essere positiva");
+        }
+
+        // Troviamo il magazzino del prodotto
         Stock stock = stockRepository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Prodotto non trovato nel magazzino"));
 
-        // 2. Creiamo l'oggetto Quantity da scalare
+        // Creiamo l'oggetto Quantity da scalare
         Quantity soldQty = new Quantity(quantitySold);
 
-        // 3. Scaliamo la quantità (il tuo metodo "decrease" gestirà in automatico gli errori e i movimenti!)
+        // Scaliamo la quantità tramite il metodo decrease gestirà in automatico gli errori e i movimenti!)
         stock.decrease(soldQty);
         stockRepository.save(stock);
 
-        System.out.println("📦 Scalati " + quantitySold + " pezzi dal prodotto " + productId +
+        System.out.println("Scalati " + quantitySold + " pezzi dal prodotto " + productId +
                 ". Nuova giacenza: " + stock.getAvailableQuantity().getValue());
 
-        // 4. LA MAGIA: Usiamo il tuo metodo "isBelowThreshold" per l'allarme!
+        // Usiamo il metodo isBelowThreshold per l'allarme!
         if (stock.isBelowThreshold()) {
             String alertMsg = "ATTENZIONE: Il prodotto ID " + productId +
                     " è sceso sotto la soglia minima! (Giacenza: " +
                     stock.getAvailableQuantity().getValue() + ")";
 
-            rabbitTemplate.convertAndSend("stock.alerts.queue", alertMsg);
-            System.out.println("🚨 Allarme inviato a RabbitMQ per il prodotto " + productId);
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.EXCHANGE_NAME,
+                    RabbitMQConfig.LOW_STOCK_ROUTING_KEY,
+                    alertMsg
+            );
+
+            System.out.println("Allarme inviato a RabbitMQ per il prodotto " + productId);
         }
     }
 }

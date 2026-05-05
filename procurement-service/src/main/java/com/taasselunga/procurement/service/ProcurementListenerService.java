@@ -1,8 +1,9 @@
 package com.taasselunga.procurement.service;
 
 import com.taasselunga.procurement.domain.PurchaseOrder;
+import com.taasselunga.procurement.config.RabbitMQConfig;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.annotation.Queue; // <-- Assicurati che ci sia questo import
+import java.util.UUID;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
@@ -12,21 +13,21 @@ public class ProcurementListenerService {
 
     private final ProcurementService procurementService;
 
-    // Questa riga è la magia che risolve il crash: se la coda non c'è, la crea!
-    @RabbitListener(queuesToDeclare = @Queue(name = "stock.alerts.queue", durable = "true"))
+    @RabbitListener(queues = RabbitMQConfig.PROCUREMENT_QUEUE)
     public void handleStockAlert(String alertMessage) {
-        System.out.println("🚨 Allarme scorta ricevuto dal Procurement: " + alertMessage);
+        System.out.println("Allarme scorta ricevuto dal Procurement: " + alertMessage);
 
-        String randomOrderNumber = "ORD-AUTO-" + (int)(Math.random() * 1000);
+        String orderNumber = "ORD-AUTO-" + UUID.randomUUID().toString().substring(0, 8);
 
         PurchaseOrder autoOrder = new PurchaseOrder(
-                randomOrderNumber,
+                orderNumber,
                 "Fornitore Da Assegnare",
                 0.0,
                 "IN_ATTESA"
         );
 
         procurementService.addOrder(autoOrder);
-        System.out.println("✅ Bozza ordine auto-generata: " + randomOrderNumber);
+
+        System.out.println("Bozza d'ordine auto-generata: " + orderNumber);
     }
 }
