@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # ==========================================
-  # SERVIZI INFRASTRUTTURALI (I Pilastri)
+  # DATABASE POSTGRES - Memorizza i dati dei microservizi
   # ==========================================
   postgres:
     image: postgres:16-alpine
@@ -10,14 +10,18 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: db_inventory # Usiamo un unico DB condiviso per comodità in Docker
+      POSTGRES_DB: postgres
     ports:
       - "5434:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data # Persistenza dati DB
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - taasselunga-network
 
+  # ==========================================
+  # RABBITMQ - Gestisce la comunicazione asincrona tra i servizi
+  # ==========================================
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: taasselunga-rabbitmq
@@ -25,15 +29,32 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"
-      - "15672:15672"
-    depends_on:
-      - postgres
+      - "5672:5672"   # Porta per lo scambio messaggi
+      - "15672:15672" # Pannello di controllo Web
     networks:
       - taasselunga-network
 
   # ==========================================
-  # MICROSERVIZI DI BUSINESS (Backend Java)
+  # KEYCLOAK - Server di Autenticazione (OAuth2/OIDC)
+  # ==========================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: taasselunga-keycloak
+    command: start-dev --import-realm # Permette l'import automatico di file JSON se presenti
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false" # Fondamentale per test in locale con diversi nomi host
+    ports:
+      - "9090:8080" # Mappato sulla 9090 per evitare conflitti col gateway
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+    networks:
+      - taasselunga-network
+
+  # ==========================================
+  # INVENTORY SERVICE - Gestione Magazzino
   # ==========================================
   inventory-service:
     build: ./inventory-service
@@ -41,15 +62,25 @@ services:
     ports:
       - "8081:8081"
     environment:
-      # Sovrascriviamo le impostazioni per usare i nomi dei container invece di localhost
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/db_inventory
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_RABBITMQ_HOST=rabbitmq
+      # ISSUER: Deve corrispondere all'URL usato da PowerShell per chiedere il token
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:9090/realms/taasselunga
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # <--- Permette al container di vedere il tuo PC come 'host.docker.internal'
     depends_on:
       - postgres
       - rabbitmq
+      - keycloak
     networks:
       - taasselunga-network
 
+  # ==========================================
+  # PROCUREMENT SERVICE - Approvvigionamento
+  # ==========================================
   procurement-service:
     build: ./procurement-service
     container_name: taasselunga-procurement
@@ -57,13 +88,24 @@ services:
       - "8082:8082"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/db_procurement
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_RABBITMQ_HOST=rabbitmq
+      # Allineamento ISSUER per validazione Token JWT
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:9090/realms/taasselunga
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # <--- Necessario per contattare Keycloak via host.docker.internal
     depends_on:
       - postgres
       - rabbitmq
+      - keycloak
     networks:
       - taasselunga-network
 
+  # ==========================================
+  # POINT OF SALE SERVICE - Cassa
+  # ==========================================
   point-of-sale-service:
     build: ./point-of-sale-service
     container_name: taasselunga-pos
@@ -71,15 +113,24 @@ services:
       - "8084:8084"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/db_pos
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:9090/realms/taasselunga
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs
+      - INVENTORY_SERVICE_URL=http://inventory-service:8081
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # <--- Aggiunto per coerenza sicurezza
     depends_on:
       - postgres
       - rabbitmq
+      - keycloak
+      - inventory-service
     networks:
       - taasselunga-network
 
   # ==========================================
-  # MICROSERVIZIO TECNICO (Node.js)
+  # NOTIFICATION SERVICE - Invio avvisi
   # ==========================================
   notification-service:
     build: ./notification-service
@@ -94,25 +145,33 @@ services:
       - taasselunga-network
 
   # ==========================================
-  # API GATEWAY (Il Vigile Urbano)
+  # API GATEWAY - Punto di ingresso unico per il Frontend
   # ==========================================
   api-gateway:
     build: ./api-gateway
     container_name: taasselunga-api-gateway
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://host.docker.internal:9090/realms/taasselunga
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
+      - keycloak
       - inventory-service
       - procurement-service
       - point-of-sale-service
+      - notification-service
     networks:
       - taasselunga-network
 
 # ==========================================
-# CONFIGURAZIONI GLOBALI
+# VOLUMI E NETWORK
 # ==========================================
 volumes:
-  postgres-data:
+  postgres-data: # Database persistente
+  keycloak-data: # Configurazioni Keycloak persistenti
 
 networks:
   taasselunga-network:

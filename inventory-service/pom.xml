@@ -27,6 +27,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- OAuth2 Resource Server / JWT Keycloak -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
         <!-- JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,5 +69,7 @@
             </plugin>
         </plugins>
     </build>
+
+
 
 </project>

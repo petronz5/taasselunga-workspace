@@ -18,44 +18,61 @@ public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http
-                // 1. Applica le regole CORS definite in basso
+
+        return http
+
+                // Permette al frontend React di chiamare il gateway
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // 2. Disabilita CSRF per permettere chiamate da localhost:3000
+
+                // Disabilita CSRF per API REST
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
+
                 .authorizeExchange(exchanges -> exchanges
-                        // 3. IMPORTANTISSIMO: Lascia sempre passare le chiamate preflight del browser (OPTIONS)
+
+                        // Permette le richieste OPTIONS del browser
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                        // 4. Sblocca completamente le rotte API per permettere al frontend di testare i dati senza login
-                        .pathMatchers("/api/**").permitAll()
-                        // 5. Tutte le altre pagine (es. la radice per il login) richiedono l'autenticazione
+
+                        // Endpoint tecnici liberi
+                        .pathMatchers("/actuator/**").permitAll()
+
+                        // Tutte le API richiedono login/token
+                        .pathMatchers("/api/**").authenticated()
+
+                        // Qualsiasi altra richiesta richiede autenticazione
                         .anyExchange().authenticated()
                 )
-                // 6. Configurazione del Login Google (reindirizza alla dashboard in caso di successo)
-                .oauth2Login(oauth2 -> oauth2
-                        .authenticationSuccessHandler(
-                                new org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler("http://localhost:3000/dashboard")
-                        )
-                );
 
-        return http.build();
+                // Il gateway controlla i token JWT di Keycloak
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> {})
+                )
+
+                .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permetti SOLO al tuo frontend di connettersi
+
+        // Frontend autorizzato
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        // Permetti tutti i metodi (GET, POST, PUT, DELETE, OPTIONS)
+
+        // Metodi HTTP permessi
         configuration.setAllowedMethods(List.of("*"));
-        // Permetti tutti gli header
+
+        // Header permessi
         configuration.setAllowedHeaders(List.of("*"));
-        // Permetti l'invio di cookie/credenziali
+
+        // Permette credenziali/token
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Applica queste regole a tutti gli endpoint del gateway (/**)
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        // Applica la configurazione a tutte le rotte
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

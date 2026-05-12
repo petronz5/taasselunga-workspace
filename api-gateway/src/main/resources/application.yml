@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # L'issuer deve corrispondere esattamente al campo 'iss' nel JWT
+          issuer-uri: http://keycloak:8080/realms/taasselunga
+          # Jwk-set-uri serve per scaricare le chiavi pubbliche per la validazione
+          jwk-set-uri: http://keycloak:8080/realms/taasselunga/protocol/openid-connect/certs
+
+  cloud:
+    gateway:
+      default-filters:
+        # FILTRO GLOBALE: Prende il token ricevuto dal Gateway e lo mette
+        # nell'header della richiesta verso Inventory/Procurement
+        - TokenRelay
+      routes:
+        - id: inventory-service
+          uri: http://inventory-service:8081
+          predicates:
+            - Path=/api/inventory/**
+
+        - id: procurement-service
+          uri: http://procurement-service:8082
+          predicates:
+            - Path=/api/procurement/**
+
+        - id: point-of-sale-service
+          uri: http://point-of-sale-service:8084
+          predicates:
+            - Path=/api/pos/**
