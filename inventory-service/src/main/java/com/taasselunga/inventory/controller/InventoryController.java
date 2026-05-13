@@ -4,6 +4,7 @@ import com.taasselunga.inventory.dto.ProductResponseDTO;
 import com.taasselunga.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,28 +16,52 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    // Endpoint per Alessia (Dashboard Frontend)
+    // Accessibile a RESPONSABILE_APPROVVIGIONAMENTO e OPERATORE_DI_MAGAZZINO
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @GetMapping("/products")
     public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
         return ResponseEntity.ok(inventoryService.getAllProductsWithStock());
     }
 
-    // Endpoint per Antonio (Tablet Scarico Merci)
+    // Solo OPERATORE_DI_MAGAZZINO può registrare la merce
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
     @PostMapping("/receive")
-    public ResponseEntity<String> receiveGoods(@RequestParam Long productId, @RequestParam Integer quantity) {
+    public ResponseEntity<String> receiveGoods(
+            @RequestParam Long productId,
+            @RequestParam Integer quantity
+    ) {
         inventoryService.receiveGoods(productId, quantity);
         return ResponseEntity.ok("Merce registrata con successo e giacenze aggiornate.");
     }
 
+    // Solo RESPONSABILE_APPROVVIGIONAMENTO può aggiungere nuovi prodotti
+    @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
     @PostMapping("/products")
-    public ResponseEntity<String> addProduct(@RequestBody com.taasselunga.inventory.dto.ProductRequestDTO request) {
+    public ResponseEntity<String> addProduct(
+            @RequestBody com.taasselunga.inventory.dto.ProductRequestDTO request
+    ) {
         inventoryService.addProduct(request);
         return ResponseEntity.ok("Prodotto aggiunto con successo");
     }
 
+    // RESPONSABILE_APPROVVIGIONAMENTO e OPERATORE_DI_MAGAZZINO possono aggiornare giacenze
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @PutMapping("/{productId}/deduct")
-    public ResponseEntity<String> deductStock(@PathVariable Long productId, @RequestParam Integer quantity) {
+    public ResponseEntity<String> deductStock(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity
+    ) {
         inventoryService.deductStock(productId, quantity);
         return ResponseEntity.ok("Giacenza aggiornata e controlli scorta effettuati.");
+    }
+
+    // Endpoint interno per comunicazione diretta tra microservizi (POS → Inventory)
+    @PutMapping("/internal/{productId}/deduct")
+    public ResponseEntity<String> deductStockInternal(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity
+    ) {
+        inventoryService.deductStock(productId, quantity);
+        return ResponseEntity.ok("Giacenza aggiornata.");
     }
 }

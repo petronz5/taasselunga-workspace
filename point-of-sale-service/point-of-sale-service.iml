@@ -10,7 +10,9 @@
       <configuration>
         <setting name="validation-enabled" value="true" />
         <setting name="provider-name" value="Hibernate" />
-        <datasource-mapping />
+        <datasource-mapping>
+          <factory-entry name="entityManagerFactory" />
+        </datasource-mapping>
         <naming-strategy-map />
       </configuration>
     </facet>
@@ -39,8 +41,6 @@
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.23.1" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:jul-to-slf4j:2.0.16" level="project" />
     <orderEntry type="library" name="Maven: jakarta.annotation:jakarta.annotation-api:2.1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-core:6.1.13" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-jcl:6.1.13" level="project" />
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:2.2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-json:3.3.4" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.17.2" level="project" />
@@ -58,9 +58,20 @@
     <orderEntry type="library" name="Maven: io.micrometer:micrometer-observation:1.13.4" level="project" />
     <orderEntry type="library" name="Maven: io.micrometer:micrometer-commons:1.13.4" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-webmvc:6.1.13" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-aop:6.1.13" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:6.1.13" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-expression:6.1.13" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-security:3.3.4" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-aop:6.1.13" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-config:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-web:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-oauth2-resource-server:3.3.4" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-crypto:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-oauth2-resource-server:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-oauth2-core:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-oauth2-jose:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: com.nimbusds:nimbus-jose-jwt:9.37.3" level="project" />
+    <orderEntry type="library" name="Maven: com.github.stephenc.jcip:jcip-annotations:1.0-1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-jpa:3.3.4" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-aop:3.3.4" level="project" />
     <orderEntry type="library" name="Maven: org.aspectj:aspectjweaver:1.9.22.1" level="project" />
@@ -99,5 +110,9 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.postgresql:postgresql:42.7.4" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.checkerframework:checker-qual:3.42.0" level="project" />
     <orderEntry type="library" name="Maven: org.projectlombok:lombok:1.18.34" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.springframework.security:spring-security-test:6.3.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-core:6.1.13" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-jcl:6.1.13" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.springframework:spring-test:6.1.13" level="project" />
   </component>
 </module>

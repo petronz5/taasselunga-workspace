@@ -24,4 +24,4 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:9090/realms/taasselunga
-          jwk-set-uri: http://keycloak:8080/realms/taasselunga/protocol/openid-connect/certs
+          jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs

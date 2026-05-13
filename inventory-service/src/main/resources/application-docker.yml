@@ -1,9 +1,9 @@
 server:
-  port: 8082
+  port: 8081
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/db_procurement
+    url: jdbc:postgresql://postgres:5432/db_inventory
     username: root
     password: password
     driver-class-name: org.postgresql.Driver
@@ -14,7 +14,7 @@ spring:
     show-sql: true
 
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: guest
     password: guest
@@ -24,4 +24,4 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:9090/realms/taasselunga
-          jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs
+          jwk-set-uri: http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs

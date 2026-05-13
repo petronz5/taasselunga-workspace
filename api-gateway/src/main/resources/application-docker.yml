@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+          jwt:
+            issuer-uri: http://localhost:9090/realms/taasselunga
+            jwk-set-uri: http://host.docker.internal:9090/realms/taasselunga/protocol/openid-connect/certs
+
+  cloud:
+    gateway:
+      routes:
+        # Route Docker verso Inventory
+        - id: inventory-service
+          uri: http://inventory-service:8081
+          predicates:
+            - Path=/api/inventory/**
+
+        # Route Docker verso Procurement
+        - id: procurement-service
+          uri: http://procurement-service:8082
+          predicates:
+            - Path=/api/procurement/**
+
+        # Route Docker verso POS
+        - id: point-of-sale-service
+          uri: http://point-of-sale-service:8084
+          predicates:
+            - Path=/api/pos/**

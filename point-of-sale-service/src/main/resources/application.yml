@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5434/db_inventory
+    url: jdbc:postgresql://localhost:5434/db_pos
     username: root
     password: password
     driver-class-name: org.postgresql.Driver
@@ -18,6 +18,13 @@ spring:
     port: 5672
     username: guest
     password: guest
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9090/realms/taasselunga
+          jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs
 
 inventory:
   service:
