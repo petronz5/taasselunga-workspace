@@ -1,0 +1,8 @@
+﻿{
+  "name": "Latte Intero",
+  "category": "Latticini",
+  "price": 2.5,
+  "imageUrl": "latte.jpg",
+  "initialStock": 5,
+  "threshold": 10
+}
