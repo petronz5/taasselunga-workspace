@@ -17,17 +17,21 @@ public class PointOfSaleService {
 
     private final ReplenishmentRequestRepository requestRepository;
     private final RabbitTemplate rabbitTemplate;
-
     private final InventoryClient inventoryClient;
 
-    // Luigi crea una richiesta di rifornimento dal punto vendita
+    // Crea una richiesta di rifornimento dal punto vendita
     @Transactional
-    public ReplenishmentRequest createReplenishmentRequest(Long storeId, Long productId, Integer quantity) {
+    public ReplenishmentRequest createReplenishmentRequest(
+            Long storeId,
+            Long productId,
+            Integer quantity,
+            String token
+    ) {
         ReplenishmentRequest request = new ReplenishmentRequest(storeId, productId, quantity);
         requestRepository.save(request);
 
-        // POS chiama Inventory via REST per aggiornare lo stock
-        inventoryClient.deductStock(productId, quantity);
+        // POS chiama Inventory via REST passando il token JWT ricevuto
+        inventoryClient.deductStock(productId, quantity, token);
 
         String message = String.format(
                 "Nuova richiesta di rifornimento dal punto vendita %d: prodotto %d, quantità %d, richiesta ID %d",
@@ -48,13 +52,13 @@ public class PointOfSaleService {
         return request;
     }
 
-    // Luigi visualizza lo stato delle sue richieste
+    // Recupera le richieste associate a uno store
     public List<ReplenishmentRequest> getStoreRequests(Long storeId) {
         return requestRepository.findByStoreId(storeId);
     }
 
-    // POS legge prodotti e stock da Inventory
-    public List<?> getProductsFromInventory() {
-        return inventoryClient.getProductsWithStock();
+    // POS legge prodotti e stock da Inventory usando il token JWT
+    public List<?> getProductsFromInventory(String token) {
+        return inventoryClient.getProductsWithStock(token);
     }
 }
