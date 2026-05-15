@@ -14,7 +14,7 @@ const io = new Server(server, {
     }
 });
 
-// URL RabbitMQ: in Docker arriva da variabile d'ambiente, in locale usa localhost
+// URL RabbitMQ (in Docker tramite variabile d'ambiente || in locale con localhost)
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
 
 // Exchange condiviso dai microservizi
@@ -23,6 +23,7 @@ const EXCHANGE_NAME = 'taasselunga-exchange';
 // Routing key ascoltate dal Notification Service
 const STOCK_ROUTING_KEY = 'stock.low';
 const POS_ROUTING_KEY = 'pos';
+const PROCUREMENT_ROUTING_KEY = 'purchase.order.created';
 
 // Coda dedicata alle notifiche
 const NOTIFICATION_QUEUE = 'notification.stock.queue';
@@ -33,20 +34,23 @@ async function connectRabbitMQ() {
         const connection = await amqp.connect(RABBITMQ_URL);
         const channel = await connection.createChannel();
 
-        // Exchange topic condiviso con Inventory e POS
+        // Exchange topic condiviso con Inventory, POS e Procurement
         await channel.assertExchange(EXCHANGE_NAME, 'topic', { durable: true });
 
-        // Coda durable per mantenere i messaggi finché non vengono consumati
+        // Definiamo le code durable così da mantenere i messaggi finché non vengono consumati
         await channel.assertQueue(NOTIFICATION_QUEUE, { durable: true });
 
         // La coda riceve eventi di stock basso
         await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, STOCK_ROUTING_KEY);
 
-        // La coda riceve anche eventi generati dal POS
+        // La coda riceve eventi generati dal POS
         await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, POS_ROUTING_KEY);
 
+        // La coda riceve eventi generati da Procurement
+        await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, PROCUREMENT_ROUTING_KEY);
+
         console.log("Notification Service in ascolto sulla coda:", NOTIFICATION_QUEUE);
-        console.log("Routing keys ascoltate:", STOCK_ROUTING_KEY, POS_ROUTING_KEY);
+        console.log("Routing keys ascoltate:", STOCK_ROUTING_KEY, POS_ROUTING_KEY, PROCUREMENT_ROUTING_KEY);
 
         channel.consume(NOTIFICATION_QUEUE, (msg) => {
             if (msg !== null) {
@@ -54,7 +58,7 @@ async function connectRabbitMQ() {
 
                 console.log("Notifica ricevuta:", messageContent);
 
-                // Invio realtime al frontend tramite WebSocket
+                // Invio della notifica vera e propira in realtime al frontend tramite WebSocket
                 io.emit('stock_alert', messageContent);
 
                 channel.ack(msg);

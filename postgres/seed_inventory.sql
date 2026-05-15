@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict dXWaJlQZynuFL8TRM4DUZyQ5D5cHlDdUgcPedQaI1zG5sDgNwg7pYAV94h6gnCb
+\restrict dezLpcvGR8t4hkVKCgG5hLSv1GzcK2beQ0IjaN83wEXxWs1JPKHP7hWt9yfvems
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-14 18:53:59
+-- Started on 2026-05-15 13:54:50
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -58,6 +58,7 @@ COPY public.stock (stock_id, available_quantity, product_id, minimum_level) FROM
 1	25	1	10
 2	18	2	10
 3	9	3	15
+4	80	4	20
 5	60	5	20
 6	14	6	25
 7	120	7	30
@@ -71,7 +72,6 @@ COPY public.stock (stock_id, available_quantity, product_id, minimum_level) FROM
 15	35	15	15
 16	20	16	8
 17	7	17	12
-4	80	4	20
 \.
 
 
@@ -112,11 +112,11 @@ SELECT pg_catalog.setval('public.stock_movement_movement_id_seq', 1, false);
 SELECT pg_catalog.setval('public.stock_stock_id_seq', 17, true);
 
 
--- Completed on 2026-05-14 18:53:59
+-- Completed on 2026-05-15 13:54:51
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dXWaJlQZynuFL8TRM4DUZyQ5D5cHlDdUgcPedQaI1zG5sDgNwg7pYAV94h6gnCb
+\unrestrict dezLpcvGR8t4hkVKCgG5hLSv1GzcK2beQ0IjaN83wEXxWs1JPKHP7hWt9yfvems
 

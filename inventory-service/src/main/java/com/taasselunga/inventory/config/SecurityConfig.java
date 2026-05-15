@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableMethodSecurity // Abilita @PreAuthorize sui controller/service
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean

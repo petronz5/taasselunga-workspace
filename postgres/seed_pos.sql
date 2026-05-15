@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict ApflFY8OKqAv4ZVG9cVzl75ptm2bc0IJSEHbon46rLbdMkX6F99W3EZOfNrvvsc
+\restrict IJIgpSce41vYhxXv49ACrTkYPG1HPrbyRJzDKXfWCbkH2G0rbf4OUlHIONy1uzM
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-14 18:59:55
+-- Started on 2026-05-15 13:22:07
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -72,11 +72,11 @@ SELECT pg_catalog.setval('public.replenishment_request_request_id_seq', 7, true)
 SELECT pg_catalog.setval('public.sale_id_seq', 6, true);
 
 
--- Completed on 2026-05-14 18:59:56
+-- Completed on 2026-05-15 13:22:07
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ApflFY8OKqAv4ZVG9cVzl75ptm2bc0IJSEHbon46rLbdMkX6F99W3EZOfNrvvsc
+\unrestrict IJIgpSce41vYhxXv49ACrTkYPG1HPrbyRJzDKXfWCbkH2G0rbf4OUlHIONy1uzM
 

@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Quantity
-{
+public class Quantity {
     private Integer value;
 
     public Quantity add (Quantity q){
@@ -19,7 +18,6 @@ public class Quantity
     public Quantity subtract(Quantity q){
         if(this.value - q.getValue() <0 ){
             throw new IllegalArgumentException("La quantità non può essere negativa");
-
         }
         return new Quantity(this.value - q.getValue());
     }

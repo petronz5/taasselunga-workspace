@@ -16,9 +16,7 @@ public class StockMovement {
     private String type;
 
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "movement_quantity"))
-    })
+    @AttributeOverrides({@AttributeOverride(name = "value", column = @Column(name = "movement_quantity"))})
     private Quantity quantity;
 
     private LocalDateTime timestamp;

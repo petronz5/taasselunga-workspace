@@ -17,9 +17,7 @@ public class Stock {
     private Long productId;
 
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "available_quantity"))
-    })
+    @AttributeOverrides({@AttributeOverride(name = "value", column = @Column(name = "available_quantity"))})
     private Quantity availableQuantity;
 
     @Embedded

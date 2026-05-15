@@ -7,13 +7,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PROCUREMENT_QUEUE  = "low-stock-queue";
+    public static final String PROCUREMENT_QUEUE = "low-stock-queue";
+
     public static final String EXCHANGE_NAME = "taasselunga-exchange";
+
     public static final String ROUTING_KEY = "stock.low";
+
+    // NUOVA ROUTING KEY
+    public static final String PURCHASE_ORDER_ROUTING_KEY = "purchase.order.created";
 
     @Bean
     public Queue queue() {
-        return new Queue(PROCUREMENT_QUEUE , true);
+        return new Queue(PROCUREMENT_QUEUE, true);
     }
 
     @Bean

@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict XMFtdQ3ZyxR3hz6U2fama4rnpSlTjDbsjdvIwGMFb1v4EoDhjcJdaLiZEJZlqza
+\restrict ZLSCsvD5oZZ7H6UmfOUFa6mBtAtKzgJfSiFY8bykaKD0PpMqDTcKSObt0beFfjQ
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-14 19:01:09
+-- Started on 2026-05-15 13:22:21
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -50,6 +50,7 @@ COPY public.purchase_order (id, order_date, order_number, status, supplier_name,
 3	2026-05-14	PO-2026-0003	IN_ATTESA	AIA Alimentari	340
 4	2026-05-14	PO-2026-0004	COMPLETATO	Mutti S.p.A.	430
 5	2026-05-14	PO-2026-0005	BOZZA	Ferrero Distribuzione	610
+6	2026-05-15	ORD-AUTO-1c5e9555	IN_ATTESA	Fornitore Da Assegnare	0
 \.
 
 
@@ -97,11 +98,11 @@ SELECT pg_catalog.setval('public.purchase_order_id_seq', 5, true);
 SELECT pg_catalog.setval('public.supplier_id_seq', 7, true);
 
 
--- Completed on 2026-05-14 19:01:09
+-- Completed on 2026-05-15 13:22:21
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict XMFtdQ3ZyxR3hz6U2fama4rnpSlTjDbsjdvIwGMFb1v4EoDhjcJdaLiZEJZlqza
+\unrestrict ZLSCsvD5oZZ7H6UmfOUFa6mBtAtKzgJfSiFY8bykaKD0PpMqDTcKSObt0beFfjQ
 
