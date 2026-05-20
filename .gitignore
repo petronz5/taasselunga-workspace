@@ -1,0 +1,13 @@
+.idea/
+*.iml
+*.iws
+.DS_Store
+
+taasselunga-frontend/node_modules/
+taasselunga-frontend/.next/
+taasselunga-frontend/out/
+taasselunga-frontend/dist/
+taasselunga-frontend/.npm/
+
+target/
+*.class

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { io } from 'socket.io-client';
+import '../globals.css';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -27,6 +28,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const isActive = (path: string) => pathname === path;
 
     return (
+        <html lang="it">
+        <body>
         <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans relative">
 
             <div className="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center z-30 sticky top-0">
@@ -42,9 +45,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             <aside className={`
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0 fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 p-6 flex flex-col transition-transform duration-300 z-20 shadow-xl md:shadow-none
-      `}>
+                        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+                        md:translate-x-0 fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-gray-200 p-6 flex flex-col transition-transform duration-300 z-20 shadow-xl md:shadow-none
+                    `}>
                 <div className="hidden md:flex flex-col items-center mb-8 pb-4 border-b border-gray-100">
                     <h1 className="text-2xl font-extrabold text-blue-900 tracking-wider">TAASSELUNGA</h1>
                     <div className="text-4xl text-red-600 font-black italic mt-1">T</div>
@@ -104,5 +107,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </main>
 
         </div>
+        </body>
+        </html>
     );
 }

@@ -52,10 +52,11 @@ public class InventoryController {
         return ResponseEntity.ok("Giacenza aggiornata e controlli scorta effettuati.");
     }
 
-    // Endpoint interno per comunicazione diretta tra microservizi (POS → Inventory)
+     //Endpoint interno per comunicazione diretta tra microservizi (POS → Inventory)
     @PutMapping("/internal/{productId}/deduct")
     public ResponseEntity<String> deductStockInternal(@PathVariable Long productId, @RequestParam Integer quantity) {
         inventoryService.deductStock(productId, quantity);
         return ResponseEntity.ok("Giacenza aggiornata.");
+
     }
 }
