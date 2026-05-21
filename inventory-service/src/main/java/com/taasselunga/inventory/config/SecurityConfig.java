@@ -11,6 +11,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,28 +28,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         return http
-                // Disabilita CSRF per API REST
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .authorizeHttpRequests(auth -> auth
-
-                        // Permette richieste preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Endpoint monitoraggio applicazione
                         .requestMatchers("/actuator/**").permitAll()
-
-                        // Endpoint interni usati da altri microservizi
                         .requestMatchers("/api/inventory/internal/**").permitAll()
-
-                        // Endpoint pubblici Inventory protetti con JWT
                         .requestMatchers("/api/inventory/**").authenticated()
-
-                        // Tutto il resto richiede autenticazione
                         .anyRequest().authenticated()
                 )
 
-                // Configura Resource Server JWT con conversione ruoli Keycloak
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
@@ -54,19 +46,30 @@ public class SecurityConfig {
                 .build();
     }
 
-    // Converte i ruoli Keycloak in ruoli compatibili con Spring Security
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
 
         return jwt -> {
-
-            // Keycloak salva i ruoli nel claim "realm_access.roles"
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
             Collection<String> roles = realmAccess == null
                     ? List.of()
                     : (Collection<String>) realmAccess.get("roles");
 
-            // Spring Security richiede il prefisso ROLE_
             List<SimpleGrantedAuthority> authorities = roles.stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(Collectors.toList());

@@ -45,7 +45,7 @@ export default function OAuthCallbackPage() {
             localStorage.setItem("access_token", data.access_token);
             localStorage.setItem("refresh_token", data.refresh_token);
 
-            router.push("/dashboard");
+            router.push("/procurement");
         }
 
         exchangeCodeForToken();

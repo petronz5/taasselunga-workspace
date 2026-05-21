@@ -108,7 +108,7 @@ export default function LoginForm() {
             );
 
             // Redirect dashboard
-            window.location.href = "/dashboard";
+            window.location.href = "/procurement";
 
         } catch (err: any) {
 
