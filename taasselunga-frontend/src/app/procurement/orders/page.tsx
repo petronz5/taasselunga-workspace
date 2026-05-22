@@ -24,18 +24,33 @@ export default function OrdersPage() {
         try {
             const token = localStorage.getItem("access_token");
 
-            const response = await fetch("http://localhost:8080/api/procurement/orders", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await fetch(
+                "http://localhost:8080/api/procurement/orders",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             if (!response.ok) {
                 throw new Error("Errore nel caricamento degli ordini");
             }
 
             const data: PurchaseOrder[] = await response.json();
-            setOrders(data);
+
+            const sortedOrders = data.sort((a, b) => {
+                const dateA = new Date(a.orderDate).getTime();
+                const dateB = new Date(b.orderDate).getTime();
+
+                if (dateB !== dateA) {
+                    return dateB - dateA;
+                }
+
+                return b.id - a.id;
+            });
+
+            setOrders(sortedOrders);
         } catch (error) {
             console.error("Errore nel caricamento ordini:", error);
         } finally {
@@ -43,20 +58,28 @@ export default function OrdersPage() {
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        if (status === "CREATO") {
+            return "In consegna";
+        }
+
+        if (status === "CONSEGNATO") {
+            return "Consegnato";
+        }
+
+        return "Stato non valido";
+    };
+
     const getStatusClassName = (status: string) => {
+        if (status === "CREATO") {
+            return "bg-blue-100 text-blue-700";
+        }
+
         if (status === "CONSEGNATO") {
             return "bg-green-100 text-green-700";
         }
 
-        if (status === "IN_ATTESA") {
-            return "bg-yellow-100 text-yellow-700";
-        }
-
-        if (status === "SPEDITO") {
-            return "bg-blue-100 text-blue-700";
-        }
-
-        return "bg-gray-100 text-gray-700";
+        return "bg-red-100 text-red-700";
     };
 
     return (
@@ -102,8 +125,12 @@ export default function OrdersPage() {
                                 <th className="p-4 font-bold">N° Ordine</th>
                                 <th className="p-4 font-bold">Data</th>
                                 <th className="p-4 font-bold">Fornitore</th>
-                                <th className="p-4 font-bold text-right">Totale (€)</th>
-                                <th className="p-4 font-bold text-center">Stato</th>
+                                <th className="p-4 font-bold text-right">
+                                    Totale (€)
+                                </th>
+                                <th className="p-4 font-bold text-center">
+                                    Stato
+                                </th>
                             </tr>
                             </thead>
 
@@ -135,7 +162,7 @@ export default function OrdersPage() {
                                                     order.status
                                                 )}`}
                                             >
-                                                {order.status}
+                                                {getStatusLabel(order.status)}
                                             </span>
                                     </td>
                                 </tr>

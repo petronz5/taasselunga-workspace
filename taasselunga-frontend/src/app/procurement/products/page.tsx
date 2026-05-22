@@ -28,11 +28,14 @@ export default function ProductsPage() {
         try {
             const token = localStorage.getItem("access_token");
 
-            const response = await fetch("http://localhost:8081/api/inventory/products", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await fetch(
+                "http://localhost:8081/api/inventory/products",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             if (!response.ok) {
                 throw new Error("Errore nel caricamento dei prodotti");
@@ -40,10 +43,17 @@ export default function ProductsPage() {
 
             const data: Product[] = await response.json();
 
-            const initialQuantities = data.reduce<Record<number, number>>((acc, product) => {
-                acc[product.id] = Math.max(product.reorderThreshold - product.stockQuantity, 1);
-                return acc;
-            }, {});
+            const initialQuantities = data.reduce<Record<number, number>>(
+                (acc, product) => {
+                    acc[product.id] = Math.max(
+                        product.reorderThreshold - product.stockQuantity,
+                        1
+                    );
+
+                    return acc;
+                },
+                {}
+            );
 
             setProducts(data);
             setOrderQuantities(initialQuantities);
@@ -55,13 +65,21 @@ export default function ProductsPage() {
     };
 
     const filteredProducts = useMemo(() => {
-        return products.filter((product) =>
-            product.name.toLowerCase().includes(search.toLowerCase()) ||
-            product.category.toLowerCase().includes(search.toLowerCase())
+        return products.filter(
+            (product) =>
+                product.name
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+                product.category
+                    .toLowerCase()
+                    .includes(search.toLowerCase())
         );
     }, [products, search]);
 
-    const handleQuantityChange = (productId: number, value: string) => {
+    const handleQuantityChange = (
+        productId: number,
+        value: string
+    ) => {
         const quantity = Number(value);
 
         setOrderQuantities((prev) => ({
@@ -72,7 +90,9 @@ export default function ProductsPage() {
 
     const handleCreateOrder = async (product: Product) => {
         const token = localStorage.getItem("access_token");
+
         const quantity = orderQuantities[product.id] ?? 1;
+
         const totalAmount = quantity * product.price;
 
         if (quantity <= 0) {
@@ -82,32 +102,40 @@ export default function ProductsPage() {
         try {
             setIsSubmittingOrderId(product.id);
 
-            const response = await fetch("http://localhost:8080/api/procurement/orders", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    orderNumber: `ORD-${Date.now()}`,
-                    supplierName: "Fornitore da assegnare",
-                    totalAmount,
-                    status: "IN_ATTESA",
+            const response = await fetch(
+                "http://localhost:8080/api/procurement/orders",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        orderNumber: `ORD-${Date.now()}`,
+                        supplierName: "Fornitore da assegnare",
+                        totalAmount,
 
-                    productId: product.id,
-                    productName: product.name,
-                    quantity,
-                    unitPrice: product.price,
-                }),
-            });
+                        // Stato iniziale ordine procurement
+                        status: "CREATO",
+
+                        productId: product.id,
+                        productName: product.name,
+                        quantity,
+                        unitPrice: product.price,
+                    }),
+                }
+            );
 
             if (!response.ok) {
-                throw new Error("Errore nella creazione dell'ordine");
+                throw new Error(
+                    "Errore nella creazione dell'ordine"
+                );
             }
 
             alert(`Ordine creato per ${product.name}`);
         } catch (error) {
             console.error("Errore creazione ordine:", error);
+
             alert("Errore durante la creazione dell'ordine");
         } finally {
             setIsSubmittingOrderId(null);
@@ -139,7 +167,8 @@ export default function ProductsPage() {
                     </h2>
 
                     <p className="text-gray-500 font-medium mt-1">
-                        Consulta i prodotti disponibili e crea direttamente un ordine di approvvigionamento.
+                        Consulta i prodotti disponibili e crea direttamente
+                        un ordine di approvvigionamento.
                     </p>
                 </div>
 
@@ -150,7 +179,9 @@ export default function ProductsPage() {
                         type="text"
                         placeholder="Cerca prodotto o categoria..."
                         value={search}
-                        onChange={(event) => setSearch(event.target.value)}
+                        onChange={(event) =>
+                            setSearch(event.target.value)
+                        }
                         className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     />
                 </div>
@@ -179,21 +210,26 @@ export default function ProductsPage() {
             {!isLoading && filteredProducts.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                     {filteredProducts.map((product) => {
-                        const quantity = orderQuantities[product.id] ?? 1;
-                        const totalAmount = quantity * product.price;
-                        const isSubmitting = isSubmittingOrderId === product.id;
+                        const quantity =
+                            orderQuantities[product.id] ?? 1;
+
+                        const totalAmount =
+                            quantity * product.price;
+
+                        const isSubmitting =
+                            isSubmittingOrderId === product.id;
 
                         return (
                             <div
                                 key={product.id}
                                 className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-all"
                             >
-                                <div className="h-44 bg-gray-100 relative flex items-center justify-center overflow-hidden">
+                                <div className="h-52 bg-gray-100 relative flex items-center justify-center overflow-hidden">
                                     {product.imageUrl ? (
                                         <img
-                                            src={product.imageUrl}
+                                            src={`/products/${product.imageUrl}`}
                                             alt={product.name}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-contain p-4 bg-white"
                                         />
                                     ) : (
                                         <Package className="w-12 h-12 text-gray-300" />
@@ -222,6 +258,7 @@ export default function ProductsPage() {
                                             <span className="text-gray-500">
                                                 Giacenza:
                                             </span>
+
                                             <span className="font-bold text-gray-800">
                                                 {product.stockQuantity} pz
                                             </span>
@@ -231,6 +268,7 @@ export default function ProductsPage() {
                                             <span className="text-gray-500">
                                                 Soglia minima:
                                             </span>
+
                                             <span className="font-bold text-gray-800">
                                                 {product.reorderThreshold} pz
                                             </span>
@@ -240,6 +278,7 @@ export default function ProductsPage() {
                                             <span className="text-gray-500">
                                                 Prezzo unitario:
                                             </span>
+
                                             <span className="font-black text-blue-900">
                                                 €{product.price.toFixed(2)}
                                             </span>
@@ -256,7 +295,10 @@ export default function ProductsPage() {
                                             min="0"
                                             value={quantity}
                                             onChange={(event) =>
-                                                handleQuantityChange(product.id, event.target.value)
+                                                handleQuantityChange(
+                                                    product.id,
+                                                    event.target.value
+                                                )
                                             }
                                             className="w-full border border-gray-300 rounded-lg p-2 text-sm font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         />
@@ -272,12 +314,20 @@ export default function ProductsPage() {
                                         </div>
 
                                         <button
-                                            onClick={() => handleCreateOrder(product)}
-                                            disabled={quantity <= 0 || isSubmitting}
+                                            onClick={() =>
+                                                handleCreateOrder(product)
+                                            }
+                                            disabled={
+                                                quantity <= 0 ||
+                                                isSubmitting
+                                            }
                                             className="mt-3 w-full inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2.5 text-sm font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                                         >
                                             <ShoppingCart className="w-4 h-4" />
-                                            {isSubmitting ? "Creazione ordine..." : "Crea ordine"}
+
+                                            {isSubmitting
+                                                ? "Creazione ordine..."
+                                                : "Crea ordine"}
                                         </button>
                                     </div>
                                 </div>

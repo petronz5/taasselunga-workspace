@@ -95,7 +95,7 @@ export default function DashboardPage() {
                     orderNumber: `ORD-${Date.now()}`,
                     supplierName: "Fornitore da assegnare",
                     totalAmount,
-                    status: "IN_ATTESA",
+                    status: "CREATO",
 
                     productId: product.id,
                     productName: product.name,
@@ -160,12 +160,12 @@ export default function DashboardPage() {
                                 className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-100">
+                                    <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden shrink-0">
                                         {product.imageUrl ? (
                                             <img
-                                                src={product.imageUrl}
+                                                src={`/products/${product.imageUrl}`}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover rounded-lg"
+                                                className="w-full h-full object-contain p-2"
                                             />
                                         ) : (
                                             <Package className="w-6 h-6 text-gray-500" />
@@ -184,11 +184,9 @@ export default function DashboardPage() {
                                         <div className="flex items-center gap-4 mt-1 text-sm">
                                             <div className="flex items-center gap-1.5">
                                                 <span className="w-2 h-2 rounded-full bg-red-500" />
-
                                                 <span className="text-gray-500">
                                                     Giacenza:
                                                 </span>
-
                                                 <span className="font-black text-red-600">
                                                     {product.stockQuantity}
                                                 </span>
@@ -198,7 +196,6 @@ export default function DashboardPage() {
                                                 <span className="text-gray-500">
                                                     Soglia min:
                                                 </span>
-
                                                 <span className="font-bold text-gray-700">
                                                     {product.reorderThreshold}
                                                 </span>
@@ -218,7 +215,7 @@ export default function DashboardPage() {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-all">
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-lg font-bold text-gray-800">
-                            Bozze d&apos;ordine
+                            Ordini suggeriti
                         </h3>
 
                         <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
@@ -229,7 +226,7 @@ export default function DashboardPage() {
                     <div className="space-y-4 flex-1">
                         {isLoading && (
                             <p className="text-gray-500 font-medium">
-                                Generazione bozze in corso...
+                                Generazione ordini suggeriti in corso...
                             </p>
                         )}
 
@@ -238,11 +235,11 @@ export default function DashboardPage() {
                                 <FileText className="w-10 h-10 text-gray-300 mb-3" />
 
                                 <p className="text-gray-500 font-bold mb-1">
-                                    Nessuna bozza da confermare
+                                    Nessun ordine suggerito
                                 </p>
 
                                 <p className="text-xs text-gray-400 max-w-[250px]">
-                                    Le bozze generate automaticamente per i prodotti sotto soglia appariranno qui.
+                                    Gli ordini suggeriti per i prodotti sotto soglia appariranno qui.
                                 </p>
                             </div>
                         )}
@@ -258,14 +255,28 @@ export default function DashboardPage() {
                                     className="p-4 bg-blue-50 border border-blue-100 rounded-xl shadow-sm"
                                 >
                                     <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="font-black text-gray-900">
-                                                Bozza ordine - {product.name}
-                                            </p>
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center border border-blue-100 overflow-hidden shrink-0">
+                                                {product.imageUrl ? (
+                                                    <img
+                                                        src={`/products/${product.imageUrl}`}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-contain p-2"
+                                                    />
+                                                ) : (
+                                                    <Package className="w-6 h-6 text-blue-500" />
+                                                )}
+                                            </div>
 
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Giacenza attuale: {product.stockQuantity} / Soglia minima: {product.reorderThreshold}
-                                            </p>
+                                            <div>
+                                                <p className="font-black text-gray-900">
+                                                    Ordine suggerito - {product.name}
+                                                </p>
+
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Giacenza attuale: {product.stockQuantity} / Soglia minima: {product.reorderThreshold}
+                                                </p>
+                                            </div>
                                         </div>
 
                                         <FileText className="w-6 h-6 text-blue-500 shrink-0" />

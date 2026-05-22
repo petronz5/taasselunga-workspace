@@ -47,16 +47,31 @@ public class InventoryController {
     // RESPONSABILE_APPROVVIGIONAMENTO, OPERATORE_DI_MAGAZZINO e RESPONSABILE_PUNTO_VENDITA possono aggiornare le giacenze
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'RESPONSABILE_PUNTO_VENDITA')")
     @PutMapping("/{productId}/deduct")
-    public ResponseEntity<String> deductStock(@PathVariable Long productId, @RequestParam Integer quantity) {
+    public ResponseEntity<String> deductStock(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity
+    ) {
         inventoryService.deductStock(productId, quantity);
         return ResponseEntity.ok("Giacenza aggiornata e controlli scorta effettuati.");
     }
 
-     //Endpoint interno per comunicazione diretta tra microservizi (POS → Inventory)
+    // Endpoint interno per comunicazione diretta tra microservizi POS → Inventory
     @PutMapping("/internal/{productId}/deduct")
-    public ResponseEntity<String> deductStockInternal(@PathVariable Long productId, @RequestParam Integer quantity) {
+    public ResponseEntity<String> deductStockInternal(
+            @PathVariable Long productId,
+            @RequestParam Integer quantity
+    ) {
         inventoryService.deductStock(productId, quantity);
         return ResponseEntity.ok("Giacenza aggiornata.");
+    }
 
+    // Endpoint interno per comunicazione diretta Procurement → Inventory
+    @PostMapping("/internal/receive")
+    public ResponseEntity<String> receiveGoodsInternal(
+            @RequestParam Long productId,
+            @RequestParam Integer quantity
+    ) {
+        inventoryService.receiveGoods(productId, quantity);
+        return ResponseEntity.ok("Merce ricevuta internamente e giacenze aggiornate.");
     }
 }

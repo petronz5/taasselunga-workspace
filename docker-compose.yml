@@ -163,11 +163,16 @@ services:
       - "8083:8083"
 
     environment:
-      # URL RabbitMQ dentro la rete Docker
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=db_notifications
+      - DB_USER=root
+      - DB_PASSWORD=password
 
     depends_on:
       - rabbitmq
+      - postgres
 
     networks:
       - taasselunga-network

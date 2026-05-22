@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDate;
 
 @Entity
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 public class PurchaseOrder {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +23,18 @@ public class PurchaseOrder {
     private Double totalAmount;
     private String status;
 
-    public PurchaseOrder(String orderNumber, String supplierName, Double totalAmount, String status) {
+    // Dati del prodotto ordinato
+    private Long productId;
+    private String productName;
+    private Integer quantity;
+    private Double unitPrice;
+
+    public PurchaseOrder(
+            String orderNumber,
+            String supplierName,
+            Double totalAmount,
+            String status
+    ) {
         this.orderNumber = orderNumber;
         this.orderDate = LocalDate.now();
         this.supplierName = supplierName;

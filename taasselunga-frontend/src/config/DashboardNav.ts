@@ -4,6 +4,7 @@ import {
     ShoppingCart,
     Handshake,
     CreditCard,
+    Bell,
 } from "lucide-react";
 
 export const dashboardNav = [
@@ -31,5 +32,10 @@ export const dashboardNav = [
         name: "Casse POS",
         href: "/procurement/pos",
         icon: CreditCard,
+    },
+    {
+        name: "Notifiche",
+        href: "/procurement/notifiche",
+        icon: Bell,
     },
 ];

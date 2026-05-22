@@ -16,18 +16,27 @@ public class PurchaseOrderController {
 
     private final ProcurementService procurementService;
 
-    // RESPONSABILE_APPROVVIGIONAMENTO approvvigionamento può visualizzare gli ordini
+    // RESPONSABILE_APPROVVIGIONAMENTO può visualizzare gli ordini
     @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
     @GetMapping
     public ResponseEntity<List<PurchaseOrder>> getOrders() {
         return ResponseEntity.ok(procurementService.getAllOrders());
     }
 
-    // Solo RESPONSABILE_APPROVVIGIONAMENTO può creare ordini di approvvigionamento
+    // RESPONSABILE_APPROVVIGIONAMENTO può creare ordini di approvvigionamento
     @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
     @PostMapping
-    public ResponseEntity<String> addOrder(@RequestBody PurchaseOrder order) {
-        procurementService.addOrder(order);
-        return ResponseEntity.ok("Ordine creato con successo");
+    public ResponseEntity<PurchaseOrder> addOrder(@RequestBody PurchaseOrder order) {
+        return ResponseEntity.ok(procurementService.addOrder(order));
+    }
+
+    // RESPONSABILE_APPROVVIGIONAMENTO può aggiornare lo stato ordine
+    @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<PurchaseOrder> updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status
+    ) {
+        return ResponseEntity.ok(procurementService.updateOrderStatus(id, status));
     }
 }
