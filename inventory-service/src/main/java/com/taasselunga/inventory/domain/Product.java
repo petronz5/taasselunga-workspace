@@ -16,11 +16,14 @@ public class Product {
     private String category;
     private Double price;
     private String imageUrl;
+    @Column(unique = true)
+    private String barcode;
 
-    public Product(String name, String category, Double price, String imageUrl) {
+    public Product(String name, String category, Double price, String imageUrl, String barcode) {
         this.name = name;
         this.category = category;
         this.price = price;
         this.imageUrl = imageUrl;
+        this.barcode = barcode;
     }
 }

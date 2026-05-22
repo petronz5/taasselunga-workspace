@@ -40,7 +40,8 @@ public class InventoryService {
                     qty,
                     threshold,
                     product.getPrice(),
-                    product.getImageUrl()
+                    product.getImageUrl(),
+                    product.getBarcode()
             );
         }).toList();
     }
@@ -68,7 +69,7 @@ public class InventoryService {
     @Transactional
     public void addProduct(ProductRequestDTO request) {
 
-        Product product = new Product(request.name(), request.category(), request.price(), request.imageUrl());
+        Product product = new Product(request.name(), request.category(), request.price(), request.imageUrl(), request.barcode());
         product = productRepository.save(product);
 
         // 2. Salva lo stock iniziale collegato

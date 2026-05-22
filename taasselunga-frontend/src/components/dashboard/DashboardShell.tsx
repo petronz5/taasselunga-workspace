@@ -25,12 +25,12 @@ export default function DashboardShell({
     async function loadNotifications() {
         try {
             const response = await fetch(
-                "http://localhost:8083/notifications/procurement"
+                "http://localhost:8080/notifications/procurement"
             );
 
             const data = await response.json();
 
-            setNotifications(data);
+            setNotifications(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Errore caricamento notifiche:", error);
         }
