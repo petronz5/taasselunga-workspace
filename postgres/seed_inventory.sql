@@ -27,24 +27,24 @@ SET row_security = off;
 -- Data for Name: product; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.product (id, category, image_url, name, price) FROM stdin;
-1	Latticini	latte-parmalat.jpg	Latte Parmalat 1L	1.3
-2	Latticini	yogurt-muller.jpg	Yogurt Muller Bianco 500g	1.89
-3	Latticini	mozzarella-santa-lucia.jpg	Mozzarella Santa Lucia 125g	1.49
-4	Pasta	spaghetti-barilla.jpg	Spaghetti Barilla 500g	1.2
-5	Pasta	penne-de-cecco.jpg	Penne Rigate De Cecco 500g	1.55
-6	Pasta e Riso	riso-scotti.jpg	Riso Scotti Carnaroli 1kg	3.49
-7	Bevande	acqua-levissima.jpg	Acqua Levissima 1.5L	0.45
-8	Bevande	coca-cola.jpg	Coca Cola 1.5L	1.75
-9	Bevande	succo-yoga-pesca.jpg	Succo Yoga Pesca 1L	1.35
-10	Freschi	uova-aia.jpg	Uova AIA x10	2.8
-11	Freschi	prosciutto-rovagnati.jpg	Prosciutto Cotto Rovagnati 100g	2.99
-12	Conserve	salsa-mutti.jpg	Salsa Mutti 300g	1.1
-13	Scatolame	tonno-rio-mare.jpg	Tonno Rio Mare 3x80g	4.99
-14	Snack	pan-di-stelle.jpg	Biscotti Pan di Stelle 350g	3.2
-15	Snack	patatine-san-carlo.jpg	Patatine San Carlo Classica 180g	2.1
-16	Casa	detersivo-dash.jpg	Detersivo Dash Liquido 1.5L	6.99
-17	Casa	carta-regina.jpg	Carta Igienica Regina 4 rotoli	3.49
+COPY public.product (id, category, image_url, name, price, barcode) FROM stdin;
+1	Latticini	latte-parmalat.jpg	Latte Parmalat 1L	1.3	8002270014901
+2	Latticini	yogurt-muller.jpg	Yogurt Muller Bianco 500g	1.89	4008452023412
+3	Latticini	mozzarella-santa-lucia.jpg	Mozzarella Santa Lucia 125g	1.49	8000430133033
+4	Pasta	spaghetti-barilla.jpg	Spaghetti Barilla 500g	1.2	8013312101017
+5	Pasta	penne-de-cecco.jpg	Penne Rigate De Cecco 500g	1.55	8001250120413
+6	Pasta e Riso	riso-scotti.jpg	Riso Scotti Carnaroli 1kg	3.49	8001860212001
+7	Bevande	acqua-levissima.jpg	Acqua Levissima 1.5L	0.45	8002270112341
+8	Bevande	coca-cola.jpg	Coca Cola 1.5L	1.75	5449000000996
+9	Bevande	succo-yoga-pesca.jpg	Succo Yoga Pesca 1L	1.35	8003440123450
+10	Freschi	uova-aia.jpg	Uova AIA x10	2.8	8006520312456
+11	Freschi	prosciutto-rovagnati.jpg	Prosciutto Cotto Rovagnati 100g	2.99	8003310011222
+12	Conserve	salsa-mutti.jpg	Salsa Mutti 300g	1.1	8005110123456
+13	Scatolame	tonno-rio-mare.jpg	Tonno Rio Mare 3x80g	4.99	8000300123456
+14	Snack	pan-di-stelle.jpg	Biscotti Pan di Stelle 350g	3.2	8013312012344
+15	Snack	patatine-san-carlo.jpg	Patatine San Carlo Classica 180g	2.1	8006520123456
+16	Casa	detersivo-dash.jpg	Detersivo Dash Liquido 1.5L	6.99	8001090123456
+17	Casa	carta-regina.jpg	Carta Igienica Regina 4 rotoli	3.49	8004230123456
 \.
 
 
