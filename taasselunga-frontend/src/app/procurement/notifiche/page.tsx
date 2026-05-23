@@ -19,14 +19,22 @@ export default function NotifichePage() {
     async function loadNotifications() {
         try {
             const response = await fetch(
-                "http://localhost:8083/notifications/procurement"
+                "http://localhost:8080/notifications/procurement"
             );
 
-            const data = await response.json();
+            // Se la risposta è vuota o non è ok, imposta un array vuoto di sicurezza
+            if (!response.ok) {
+                setNotifications([]);
+                return;
+            }
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : [];
 
             setNotifications(data);
         } catch (error) {
             console.error("Errore caricamento notifiche:", error);
+            setNotifications([]); // Stato di fallback sicuro
         }
     }
 

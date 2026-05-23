@@ -27,7 +27,7 @@ export default function DashboardPage() {
         try {
             const token = localStorage.getItem("access_token");
 
-            const response = await fetch("http://localhost:8081/api/inventory/products", {
+            const response = await fetch("http://localhost:8080/api/inventory/products", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

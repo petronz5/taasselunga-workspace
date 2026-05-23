@@ -7,5 +7,6 @@ public record ProductResponseDTO(
         Integer stockQuantity,
         Integer reorderThreshold,
         Double price,
-        String imageUrl
+        String imageUrl,
+        String barcode
 ) {}
