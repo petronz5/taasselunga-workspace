@@ -1,70 +1,223 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
+import {
+    Package,
+    Search,
+    ShoppingCart,
+    Plus,
+    X,
+} from "lucide-react";
+
 import BarcodeScanner from "../../../components/BarcodeScanner";
 
+type Product = {
+    id: number;
+    name: string;
+    category: string;
+    stockQuantity: number;
+    reorderThreshold: number;
+    price: number;
+    imageUrl?: string;
+    barcode?: string;
+};
+
 export default function ProcurementProductsPage() {
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [search, setSearch] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+
     const [isScanning, setIsScanning] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+
+    const [orderQuantities, setOrderQuantities] = useState<
+        Record<number, number>
+    >({});
+
     const [formData, setFormData] = useState({
-        name: '',
-        category: '',
-        price: '',
-        imageUrl: '',
-        barcode: ''
+        name: "",
+        category: "",
+        price: "",
+        imageUrl: "",
+        barcode: "",
     });
 
     useEffect(() => {
         fetchProducts();
     }, []);
 
-    const fetchProducts = async () => {
+    async function fetchProducts() {
         try {
-            const res = await fetch('/api/products');
-            if (res.ok) {
-                const data = await res.json();
-                setProducts(data);
+            setIsLoading(true);
+
+            const token = localStorage.getItem("access_token");
+
+            const response = await fetch(
+                "http://localhost:8080/api/inventory/products",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Errore caricamento prodotti");
             }
+
+            const data = await response.json();
+
+            setProducts(data);
+
+            const initialQuantities = data.reduce(
+                (acc: Record<number, number>, product: Product) => {
+                    acc[product.id] = Math.max(
+                        product.reorderThreshold -
+                        product.stockQuantity,
+                        1
+                    );
+
+                    return acc;
+                },
+                {}
+            );
+
+            setOrderQuantities(initialQuantities);
         } catch (error) {
             console.error(error);
+            setProducts([]);
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const filteredProducts = useMemo(() => {
+        return products.filter((product) =>
+            `${product.name} ${product.category} ${
+                product.barcode ?? ""
+            }`
+                .toLowerCase()
+                .includes(search.toLowerCase())
+        );
+    }, [products, search]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await fetch('/api/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    price: parseFloat(formData.price),
-                    initialStock: 0,
-                    threshold: 10
-                })
-            });
-            if (res.ok) {
-                fetchProducts();
-                setFormData({ name: '', category: '', price: '', imageUrl: '', barcode: '' });
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    function updateQuantity(productId: number, quantity: number) {
+        setOrderQuantities((prev) => ({
+            ...prev,
+            [productId]: quantity < 1 ? 1 : quantity,
+        }));
+    }
 
-    const handleScan = (scannedBarcode: string) => {
-        setFormData({ ...formData, barcode: scannedBarcode });
+    function handleInputChange(
+        e: React.ChangeEvent<HTMLInputElement>
+    ) {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    }
+
+    function handleScan(scannedBarcode: string) {
+        setFormData({
+            ...formData,
+            barcode: scannedBarcode,
+        });
+
         setIsScanning(false);
-    };
+    }
+
+    async function handleCreateProduct(
+        e: React.FormEvent
+    ) {
+        e.preventDefault();
+
+        try {
+            const token = localStorage.getItem("access_token");
+
+            const response = await fetch(
+                "http://localhost:8080/api/inventory/products",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        ...formData,
+                        price: parseFloat(formData.price),
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Errore creazione prodotto");
+            }
+
+            await fetchProducts();
+
+            setFormData({
+                name: "",
+                category: "",
+                price: "",
+                imageUrl: "",
+                barcode: "",
+            });
+
+            setShowForm(false);
+
+            alert("Prodotto creato con successo");
+        } catch (error) {
+            console.error(error);
+            alert("Errore durante la creazione del prodotto");
+        }
+    }
+
+    async function createOrder(product: Product) {
+        try {
+            const token = localStorage.getItem("access_token");
+
+            const quantity =
+                orderQuantities[product.id] ?? 1;
+
+            const response = await fetch(
+                "http://localhost:8080/api/procurement/orders",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        orderNumber: `ORD-${Date.now()}`,
+                        supplierName:
+                            "Fornitore da assegnare",
+                        totalAmount:
+                            quantity * product.price,
+                        status: "CREATO",
+                        productId: product.id,
+                        productName: product.name,
+                        quantity,
+                        unitPrice: product.price,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Errore creazione ordine");
+            }
+
+            alert(
+                `Ordine creato per ${product.name}`
+            );
+        } catch (error) {
+            console.error(error);
+            alert("Errore creazione ordine");
+        }
+    }
 
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Gestione Prodotti - Approvvigionamento</h1>
-
+        <div className="space-y-6">
             {isScanning && (
                 <BarcodeScanner
                     onScan={handleScan}
@@ -72,101 +225,307 @@ export default function ProcurementProductsPage() {
                 />
             )}
 
-            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                <h2 className="text-xl font-semibold mb-4">Aggiungi Nuovo Prodotto</h2>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Nome Prodotto"
-                        className="border border-gray-300 p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        placeholder="Categoria"
-                        className="border border-gray-300 p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
-                    />
-                    <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        placeholder="Prezzo (€)"
-                        step="0.01"
-                        className="border border-gray-300 p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                        required
-                    />
-                    <input
-                        type="text"
-                        name="imageUrl"
-                        value={formData.imageUrl}
-                        onChange={handleInputChange}
-                        placeholder="URL Immagine (opzionale)"
-                        className="border border-gray-300 p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-gray-900">
+                        Prodotti
+                    </h1>
 
-                    <div className="flex gap-2 w-full md:col-span-2">
+                    <p className="text-gray-500 mt-1 font-medium">
+                        Gestione completa catalogo
+                        prodotti.
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-3 w-full xl:w-auto">
+                    <div className="relative flex-1 xl:w-96">
+                        <Search className="w-5 h-5 text-gray-400 absolute left-3 top-3" />
+
                         <input
-                            type="text"
-                            name="barcode"
-                            value={formData.barcode}
-                            onChange={handleInputChange}
-                            placeholder="Lettura Barcode"
-                            className="border border-gray-300 p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                            required
+                            value={search}
+                            onChange={(e) =>
+                                setSearch(e.target.value)
+                            }
+                            placeholder="Cerca prodotto..."
+                            className="w-full border border-gray-200 rounded-2xl pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                         />
-                        <button
-                            type="button"
-                            onClick={() => setIsScanning(true)}
-                            className="bg-gray-800 text-white font-semibold px-6 py-3 rounded-md hover:bg-gray-700 transition-colors whitespace-nowrap"
-                        >
-                            Usa Scanner
-                        </button>
                     </div>
 
-                    <div className="md:col-span-2 mt-2">
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                            Salva Prodotto
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    <button
+                        onClick={() =>
+                            setShowForm(!showForm)
+                        }
+                        className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-black hover:bg-blue-700 transition inline-flex items-center gap-2 whitespace-nowrap"
+                    >
+                        {showForm ? (
+                            <X className="w-5 h-5" />
+                        ) : (
+                            <Plus className="w-5 h-5" />
+                        )}
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Lista Prodotti a Sistema</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                        <tr className="bg-gray-100 border-b border-gray-300">
-                            <th className="p-4 font-semibold">Nome</th>
-                            <th className="p-4 font-semibold">Categoria</th>
-                            <th className="p-4 font-semibold">Prezzo</th>
-                            <th className="p-4 font-semibold">Codice a Barre</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {products.map((product, index) => (
-                            <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                                <td className="p-4 font-medium">{product.name}</td>
-                                <td className="p-4">{product.category}</td>
-                                <td className="p-4">€{parseFloat(product.price).toFixed(2)}</td>
-                                <td className="p-4 font-mono text-sm text-gray-600">{product.barcode || 'N/A'}</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                        {showForm
+                            ? "Chiudi"
+                            : "Nuovo prodotto"}
+                    </button>
                 </div>
             </div>
+
+            {showForm && (
+                <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                    <h2 className="text-2xl font-black text-gray-900 mb-5">
+                        Aggiungi nuovo prodotto
+                    </h2>
+
+                    <form
+                        onSubmit={handleCreateProduct}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            placeholder="Nome prodotto"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                            required
+                        />
+
+                        <input
+                            type="text"
+                            name="category"
+                            value={formData.category}
+                            onChange={handleInputChange}
+                            placeholder="Categoria"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                            required
+                        />
+
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="Prezzo"
+                            step="0.01"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                            required
+                        />
+
+                        <input
+                            type="text"
+                            name="imageUrl"
+                            value={formData.imageUrl}
+                            onChange={handleInputChange}
+                            placeholder="URL immagine"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                        />
+
+                        <div className="md:col-span-2 flex gap-3">
+                            <input
+                                type="text"
+                                name="barcode"
+                                value={formData.barcode}
+                                onChange={
+                                    handleInputChange
+                                }
+                                placeholder="Barcode"
+                                className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                                required
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setIsScanning(true)
+                                }
+                                className="bg-gray-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-black transition whitespace-nowrap"
+                            >
+                                Usa Scanner
+                            </button>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition"
+                            >
+                                Salva prodotto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {isLoading ? (
+                <div className="bg-white border border-gray-200 rounded-3xl p-8">
+                    Caricamento prodotti...
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredProducts.map((product) => {
+                        const isLowStock =
+                            product.stockQuantity <
+                            product.reorderThreshold;
+
+                        const quantity =
+                            orderQuantities[
+                                product.id
+                                ] ?? 1;
+
+                        const totalAmount =
+                            quantity * product.price;
+
+                        return (
+                            <div
+                                key={product.id}
+                                className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition"
+                            >
+                                <div className="h-60 bg-gray-50 border-b border-gray-100 flex items-center justify-center p-6">
+                                    {product.imageUrl ? (
+                                        <img
+                                            src={`/products/${product.imageUrl}`}
+                                            alt={
+                                                product.name
+                                            }
+                                            className="w-full h-full object-contain"
+                                        />
+                                    ) : (
+                                        <Package className="w-20 h-20 text-gray-300" />
+                                    )}
+                                </div>
+
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h2 className="text-2xl font-black text-gray-900">
+                                                {product.name}
+                                            </h2>
+
+                                            <p className="text-gray-500 font-medium">
+                                                {
+                                                    product.category
+                                                }
+                                            </p>
+                                        </div>
+
+                                        {isLowStock ? (
+                                            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black">
+                                                Sotto soglia
+                                            </span>
+                                        ) : (
+                                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black">
+                                                Disponibile
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 mt-5">
+                                        <div className="bg-gray-50 rounded-2xl p-4">
+                                            <p className="text-xs text-gray-500 font-bold">
+                                                Giacenza
+                                            </p>
+
+                                            <p className="text-2xl font-black text-gray-900">
+                                                {
+                                                    product.stockQuantity
+                                                }
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gray-50 rounded-2xl p-4">
+                                            <p className="text-xs text-gray-500 font-bold">
+                                                Soglia
+                                            </p>
+
+                                            <p className="text-2xl font-black text-gray-900">
+                                                {
+                                                    product.reorderThreshold
+                                                }
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gray-50 rounded-2xl p-4">
+                                            <p className="text-xs text-gray-500 font-bold">
+                                                Prezzo
+                                            </p>
+
+                                            <p className="text-xl font-black text-blue-700">
+                                                €
+                                                {Number(
+                                                    product.price
+                                                ).toFixed(
+                                                    2
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gray-50 rounded-2xl p-4">
+                                            <p className="text-xs text-gray-500 font-bold">
+                                                Barcode
+                                            </p>
+
+                                            <p className="text-xs font-mono text-gray-700 truncate">
+                                                {product.barcode ||
+                                                    "N/A"}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 border-t border-gray-100 pt-5">
+                                        <p className="text-center text-sm font-black text-gray-700 mb-2">
+                                            Quantità da ordinare
+                                        </p>
+
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={quantity}
+                                            onChange={(
+                                                e
+                                            ) =>
+                                                updateQuantity(
+                                                    product.id,
+                                                    Number(
+                                                        e
+                                                            .target
+                                                            .value
+                                                    )
+                                                )
+                                            }
+                                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-center text-2xl font-black outline-none focus:ring-2 focus:ring-blue-200"
+                                        />
+
+                                        <div className="text-center mt-4 mb-5">
+                                            <p className="text-xs text-gray-500 font-bold">
+                                                Totale ordine
+                                            </p>
+
+                                            <p className="text-2xl font-black text-blue-700">
+                                                €
+                                                {totalAmount.toFixed(
+                                                    2
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() =>
+                                                createOrder(
+                                                    product
+                                                )
+                                            }
+                                            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition inline-flex items-center justify-center gap-2"
+                                        >
+                                            <ShoppingCart className="w-5 h-5" />
+                                            Crea ordine
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

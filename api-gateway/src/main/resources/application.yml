@@ -6,27 +6,28 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Keycloak esposto sulla macchina locale
           issuer-uri: http://localhost:9090/realms/taasselunga
           jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs
 
   cloud:
     gateway:
       routes:
-        # Route locale verso Inventory
         - id: inventory-service
           uri: http://localhost:8081
           predicates:
             - Path=/api/inventory/**
 
-        # Route locale verso Procurement
         - id: procurement-service
           uri: http://localhost:8082
           predicates:
             - Path=/api/procurement/**
 
-        # Route locale verso POS
         - id: point-of-sale-service
           uri: http://localhost:8084
           predicates:
             - Path=/api/pos/**
+
+        - id: notification-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/notifications/**

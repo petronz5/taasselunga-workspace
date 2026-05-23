@@ -59,7 +59,7 @@ export default function NotifichePage() {
 
     async function markAsRead(id: number) {
         try {
-            await fetch(`http://localhost:8083/notifications/${id}/read`, {
+            await fetch(`http://localhost:8080/notifications/${id}/read`, {
                 method: "PATCH",
             });
 
@@ -75,7 +75,7 @@ export default function NotifichePage() {
 
     async function clearNotifications() {
         try {
-            await fetch("http://localhost:8083/notifications/procurement", {
+            await fetch("http://localhost:8080/notifications/procurement", {
                 method: "DELETE",
             });
 

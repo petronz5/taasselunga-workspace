@@ -18,18 +18,6 @@ const server = http.createServer(app);
 // Permetto al server di leggere JSON nelle richieste HTTP
 app.use(express.json());
 
-// CORS per permettere al frontend React/Next di chiamare le API
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-
-    next();
-});
 
 // WebSocket per permettere al frontend React di ricevere notifiche realtime
 const io = new Server(server, {
@@ -40,8 +28,7 @@ const io = new Server(server, {
 });
 
 // URL RabbitMQ (in Docker tramite variabile d'ambiente || in locale con localhost)
-const RABBITMQ_URL =
-    process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
+const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
 
 // Exchange condiviso dai microservizi
 const EXCHANGE_NAME = "taasselunga-exchange";
