@@ -3,16 +3,16 @@
 import React from "react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import DashboardShell from "../../components/dashboard/DashboardShell";
-import { dashboardNav } from "../../config/DashboardNav";
+import { inventoryNav } from "../../config/InventoryNav";
 
-export default function DashboardLayout({
+export default function InventoryLayout({
                                             children,
                                         }: {
     children: React.ReactNode;
 }) {
     return (
         <ProtectedRoute>
-            <DashboardShell navItems={dashboardNav}>
+            <DashboardShell navItems={inventoryNav}>
                 {children}
             </DashboardShell>
         </ProtectedRoute>

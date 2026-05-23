@@ -14,11 +14,15 @@ export type ProcurementNotification = {
     createdAt: string;
 };
 
+type DashboardShellProps = {
+    children: React.ReactNode;
+    navItems: any[];
+};
+
 export default function DashboardShell({
                                            children,
-                                       }: {
-    children: React.ReactNode;
-}) {
+                                           navItems,
+                                       }: DashboardShellProps) {
     const [notifications, setNotifications] = useState<ProcurementNotification[]>([]);
     const router = useRouter();
 
@@ -74,7 +78,11 @@ export default function DashboardShell({
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
-            <Sidebar alertsCount={unreadCount} onLogout={handleLogout} />
+            <Sidebar
+                items={navItems}
+                alertsCount={unreadCount}
+                onLogout={handleLogout}
+            />
 
             <main className="flex-1 p-8 overflow-y-auto">
                 {children}
