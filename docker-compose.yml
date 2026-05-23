@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # ==========================================
@@ -45,32 +43,6 @@ services:
 
 
   # ==========================================
-  # KEYCLOAK - Authentication Server OAuth2/OIDC
-  # ==========================================
-  keycloak:
-    image: quay.io/keycloak/keycloak:26.0
-    container_name: taasselunga-keycloak
-
-    command: start-dev --import-realm
-
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-      KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_STRICT: "false"
-
-    ports:
-      - "9090:8080"
-
-    volumes:
-      - keycloak-data:/opt/keycloak/data
-      - ./keycloak/taasselunga-realm.json:/opt/keycloak/data/import/taasselunga-realm.json
-
-    networks:
-      - taasselunga-network
-
-
-  # ==========================================
   # INVENTORY SERVICE - Gestione Magazzino
   # ==========================================
   inventory-service:
@@ -84,14 +56,10 @@ services:
       # Attiva application-docker.yml
       - SPRING_PROFILES_ACTIVE=docker
 
-    # Permette al container di raggiungere Keycloak esposto sull'host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
     depends_on:
       - postgres
       - rabbitmq
-      - keycloak
 
     networks:
       - taasselunga-network
@@ -111,14 +79,12 @@ services:
       # Attiva application-docker.yml
       - SPRING_PROFILES_ACTIVE=docker
 
-    # Permette al container di raggiungere Keycloak esposto sull'host
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     depends_on:
       - postgres
       - rabbitmq
-      - keycloak
 
     networks:
       - taasselunga-network
@@ -138,14 +104,12 @@ services:
       # Attiva application-docker.yml
       - SPRING_PROFILES_ACTIVE=docker
 
-    # Permette al container di raggiungere Keycloak esposto sull'host
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     depends_on:
       - postgres
       - rabbitmq
-      - keycloak
       - inventory-service
 
     networks:
@@ -192,12 +156,10 @@ services:
       # Attiva application-docker.yml
       - SPRING_PROFILES_ACTIVE=docker
 
-    # Permette al container di raggiungere Keycloak esposto sull'host
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     depends_on:
-      - keycloak
       - inventory-service
       - procurement-service
       - point-of-sale-service
@@ -212,7 +174,6 @@ services:
 # ==========================================
 volumes:
   postgres-data:
-  keycloak-data:
 
 
 # ==========================================

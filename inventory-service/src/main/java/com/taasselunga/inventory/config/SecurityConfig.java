@@ -12,10 +12,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Configuration
 @EnableMethodSecurity
@@ -23,14 +21,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         return http
                 .csrf(csrf -> csrf.disable())
-
-                // CORS gestito solo dall'api-gateway.
-                // Evita doppio header Access-Control-Allow-Origin.
                 .cors(cors -> cors.disable())
-
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
@@ -38,28 +31,35 @@ public class SecurityConfig {
                         .requestMatchers("/api/inventory/**").authenticated()
                         .anyRequest().authenticated()
                 )
-
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
-
                 .build();
     }
 
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
-
         return jwt -> {
-            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-
-            Collection<String> roles = realmAccess == null
-                    ? List.of()
-                    : (Collection<String>) realmAccess.get("roles");
-
-            List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(Collectors.toList());
-
+            String email = jwt.getClaimAsString("email");
+            List<SimpleGrantedAuthority> authorities = getAuthorities(email);
             return new JwtAuthenticationToken(jwt, authorities);
         };
+    }
+
+    private List<SimpleGrantedAuthority> getAuthorities(String email) {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        if ("alessia@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_APPROVVIGIONAMENTO"));
+        }
+
+        if ("antonio@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_OPERATORE_DI_MAGAZZINO"));
+        }
+
+        if ("luigi@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_PUNTO_VENDITA"));
+        }
+
+        return authorities;
     }
 }

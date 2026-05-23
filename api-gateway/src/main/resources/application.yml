@@ -6,28 +6,5 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9090/realms/taasselunga
-          jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs
-
-  cloud:
-    gateway:
-      routes:
-        - id: inventory-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/inventory/**
-
-        - id: procurement-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api/procurement/**
-
-        - id: point-of-sale-service
-          uri: http://localhost:8084
-          predicates:
-            - Path=/api/pos/**
-
-        - id: notification-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/notifications/**
+          issuer-uri: https://securetoken.google.com/taasselunga-4d6e5
+          jwk-set-uri: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com

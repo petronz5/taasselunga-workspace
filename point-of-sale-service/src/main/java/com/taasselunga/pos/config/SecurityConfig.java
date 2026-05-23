@@ -12,63 +12,53 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Configuration
-@EnableMethodSecurity // Abilita @PreAuthorize sui controller/service
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         return http
-                // Disabilita CSRF per API REST
                 .csrf(csrf -> csrf.disable())
-
+                .cors(cors -> cors.disable())
                 .authorizeHttpRequests(auth -> auth
-
-                        // Permette richieste preflight CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Endpoint monitoraggio applicazione
                         .requestMatchers("/actuator/**").permitAll()
-
-                        // Endpoint POS protetti con JWT
                         .requestMatchers("/api/pos/**").authenticated()
-
-                        // Tutto il resto richiede autenticazione
                         .anyRequest().authenticated()
                 )
-
-                // Configura Resource Server JWT con conversione ruoli Keycloak
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
-
                 .build();
     }
 
-    // Converte i ruoli Keycloak in ruoli compatibili con Spring Security
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
-
         return jwt -> {
-
-            // Keycloak salva i ruoli nel claim "realm_access.roles"
-            Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-
-            Collection<String> roles = realmAccess == null
-                    ? List.of()
-                    : (Collection<String>) realmAccess.get("roles");
-
-            // Spring Security richiede il prefisso ROLE_
-            List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(Collectors.toList());
-
+            String email = jwt.getClaimAsString("email");
+            List<SimpleGrantedAuthority> authorities = getAuthorities(email);
             return new JwtAuthenticationToken(jwt, authorities);
         };
+    }
+
+    private List<SimpleGrantedAuthority> getAuthorities(String email) {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
+        if ("alessia@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_APPROVVIGIONAMENTO"));
+        }
+
+        if ("antonio@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_OPERATORE_DI_MAGAZZINO"));
+        }
+
+        if ("luigi@taasselunga.it".equalsIgnoreCase(email)) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_PUNTO_VENDITA"));
+        }
+
+        return authorities;
     }
 }

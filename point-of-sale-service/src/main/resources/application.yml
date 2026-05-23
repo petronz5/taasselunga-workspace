@@ -23,8 +23,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9090/realms/taasselunga
-          jwk-set-uri: http://localhost:9090/realms/taasselunga/protocol/openid-connect/certs
+          issuer-uri: https://securetoken.google.com/taasselunga-4d6e5
+          jwk-set-uri: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
 
 inventory:
   service:

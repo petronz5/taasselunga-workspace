@@ -11,6 +11,7 @@ interface Product {
     reorderThreshold: number;
     price: number;
     imageUrl?: string;
+    barcode?: string;
 }
 
 export default function DashboardPage() {
@@ -23,14 +24,20 @@ export default function DashboardPage() {
         fetchLowStockProducts();
     }, []);
 
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem("access_token");
+
+        return {
+            Authorization: `Bearer ${token}`,
+        };
+    };
+
     const fetchLowStockProducts = async () => {
         try {
-            const token = localStorage.getItem("access_token");
+            setIsLoading(true);
 
             const response = await fetch("http://localhost:8080/api/inventory/products", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: getAuthHeaders(),
             });
 
             if (!response.ok) {
@@ -74,7 +81,6 @@ export default function DashboardPage() {
     };
 
     const handleSendOrder = async (product: Product) => {
-        const token = localStorage.getItem("access_token");
         const quantity = draftQuantities[product.id] ?? 1;
         const totalAmount = quantity * product.price;
 
@@ -89,14 +95,13 @@ export default function DashboardPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    ...getAuthHeaders(),
                 },
                 body: JSON.stringify({
                     orderNumber: `ORD-${Date.now()}`,
                     supplierName: "Fornitore da assegnare",
                     totalAmount,
                     status: "CREATO",
-
                     productId: product.id,
                     productName: product.name,
                     quantity,

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.0",
-    "keycloak-js": "^26.2.4",
+    "firebase": "^12.13.0",
     "lucide-react": "^1.16.0",
     "next": "latest",
     "react": "latest",
