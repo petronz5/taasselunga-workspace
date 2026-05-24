@@ -1,6 +1,13 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import {
+    AlertTriangle,
+    ClipboardCheck,
+    Package,
+    Truck,
+    Send,
+} from "lucide-react";
 
 interface Product {
     id: number;
@@ -13,282 +20,433 @@ interface Product {
     barcode?: string;
 }
 
+interface IncomingOrder {
+    id: number;
+    orderNumber: string;
+    supplierName: string;
+    totalAmount: number;
+    status: string;
+    orderDate: string;
+    productId?: number;
+    productName?: string;
+    quantity?: number;
+    unitPrice?: number;
+}
+
 export default function InventoryPage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-    const [quantity, setQuantity] = useState<number>(1);
-    const [search, setSearch] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
+    const [incomingOrders, setIncomingOrders] = useState<IncomingOrder[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(true);
+    const [loadingOrders, setLoadingOrders] = useState(true);
+    const [notifyingProductId, setNotifyingProductId] = useState<number | null>(null);
 
-    const fetchProducts = async () => {
+    useEffect(() => {
+        fetchProducts();
+        fetchIncomingOrders();
+    }, []);
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem("access_token");
+
+        return {
+            Authorization: `Bearer ${token}`,
+        };
+    }
+
+    async function fetchProducts() {
         try {
-            setLoading(true);
-
-            const token = localStorage.getItem("access_token");
+            setLoadingProducts(true);
 
             const response = await fetch("http://localhost:8080/api/inventory/products", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: getAuthHeaders(),
             });
 
             if (!response.ok) {
-                throw new Error("Errore nel caricamento prodotti");
+                throw new Error("Errore caricamento prodotti");
             }
 
             const data: Product[] = await response.json();
             setProducts(data);
         } catch (error) {
-            console.error(error);
-            alert("Errore nel caricamento dell'inventario");
+            console.error("Errore caricamento prodotti:", error);
+            setProducts([]);
         } finally {
-            setLoading(false);
+            setLoadingProducts(false);
         }
-    };
+    }
 
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    const filteredProducts = useMemo(() => {
-        return products.filter((product) =>
-            `${product.name} ${product.category} ${product.barcode ?? ""}`
-                .toLowerCase()
-                .includes(search.toLowerCase())
-        );
-    }, [products, search]);
-
-    const lowStockProducts = products.filter(
-        (product) => product.stockQuantity < product.reorderThreshold
-    );
-
-    const selectedProduct = products.find((p) => p.id === selectedProductId);
-
-    const handleReceiveGoods = async (event: React.FormEvent) => {
-        event.preventDefault();
-
-        if (!selectedProductId || quantity <= 0) {
-            alert("Seleziona un prodotto e inserisci una quantità valida");
-            return;
-        }
-
+    async function fetchIncomingOrders() {
         try {
-            setSubmitting(true);
+            setLoadingOrders(true);
 
-            const token = localStorage.getItem("access_token");
-
-            const response = await fetch(
-                `http://localhost:8080/api/inventory/receive?productId=${selectedProductId}&quantity=${quantity}`,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const response = await fetch("http://localhost:8080/api/procurement/orders", {
+                headers: getAuthHeaders(),
+            });
 
             if (!response.ok) {
-                throw new Error("Errore nella registrazione della merce");
+                throw new Error("Errore caricamento ordini in arrivo");
             }
 
-            alert("Merce registrata con successo");
-            setSelectedProductId(null);
-            setQuantity(1);
-            await fetchProducts();
+            const data: IncomingOrder[] = await response.json();
+
+            const sortedOrders = data
+                .filter((order) => order.status === "CREATO")
+                .sort((a, b) => {
+                    const dateA = new Date(a.orderDate).getTime();
+                    const dateB = new Date(b.orderDate).getTime();
+
+                    return dateB - dateA;
+                });
+
+            setIncomingOrders(sortedOrders);
         } catch (error) {
-            console.error(error);
-            alert("Errore durante il carico merce");
+            console.error("Errore caricamento ordini in arrivo:", error);
+            setIncomingOrders([]);
         } finally {
-            setSubmitting(false);
+            setLoadingOrders(false);
         }
-    };
+    }
+
+    const lowStockProducts = useMemo(() => {
+        return products.filter(
+            (product) => product.stockQuantity < product.reorderThreshold
+        );
+    }, [products]);
+
+    const totalStockPieces = useMemo(() => {
+        return products.reduce((sum, product) => sum + product.stockQuantity, 0);
+    }, [products]);
+
+    function findProductForOrder(order: IncomingOrder) {
+        if (order.productId) {
+            return products.find((product) => product.id === order.productId);
+        }
+
+        if (order.productName) {
+            return products.find(
+                (product) =>
+                    product.name.toLowerCase() === order.productName?.toLowerCase()
+            );
+        }
+
+        return undefined;
+    }
+
+    async function notifyProcurement(product: Product) {
+        try {
+            setNotifyingProductId(product.id);
+
+            const response = await fetch("http://localhost:8080/notifications", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(),
+                },
+                body: JSON.stringify({
+                    targetRole: "PROCUREMENT",
+                    title: "Sollecito approvvigionamento",
+                    message: `Antonio segnala prodotto sotto soglia: ${product.name}. Giacenza attuale: ${product.stockQuantity}, soglia minima: ${product.reorderThreshold}.`,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Errore invio notifica");
+            }
+
+            alert(`Notifica inviata ad Alessia per ${product.name}`);
+        } catch (error) {
+            console.error("Errore invio notifica:", error);
+            alert("Errore durante l'invio della notifica");
+        } finally {
+            setNotifyingProductId(null);
+        }
+    }
 
     return (
-        <main className="min-h-screen bg-slate-100 p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <header className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                    <p className="text-sm font-bold text-blue-700 uppercase">
-                        Magazzino Centrale
-                    </p>
-                    <h1 className="text-3xl font-black text-slate-900">
-                        Gestione Inventory
-                    </h1>
-                    <p className="text-slate-500 mt-2">
-                        Visualizza giacenze, soglie minime e registra merce in arrivo.
-                    </p>
-                </header>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-black text-slate-900">
+                    Benvenuto Antonio
+                </h1>
 
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                        <p className="text-slate-500 font-semibold">Prodotti totali</p>
-                        <p className="text-3xl font-black text-slate-900">{products.length}</p>
-                    </div>
+                <p className="text-slate-500 mt-2 font-medium">
+                    Monitora le giacenze del magazzino centrale e la merce in arrivo dai fornitori.
+                </p>
+            </div>
 
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                        <p className="text-slate-500 font-semibold">Sotto soglia</p>
-                        <p className="text-3xl font-black text-orange-600">
-                            {lowStockProducts.length}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-slate-500 font-semibold">
+                            Prodotti totali
                         </p>
+                        <Package className="w-5 h-5 text-slate-400" />
                     </div>
 
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                        <p className="text-slate-500 font-semibold">Pezzi totali</p>
-                        <p className="text-3xl font-black text-green-700">
-                            {products.reduce((sum, p) => sum + p.stockQuantity, 0)}
+                    <p className="text-3xl font-black text-black mt-2">
+                        {products.length}
+                    </p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-orange-200 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-slate-500 font-semibold">
+                            Prodotti sotto soglia
                         </p>
-                    </div>
-                </section>
-
-                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm lg:col-span-1">
-                        <h2 className="text-xl font-black text-slate-900 mb-4">
-                            Registra merce ricevuta
-                        </h2>
-
-                        <form onSubmit={handleReceiveGoods} className="space-y-5">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
-                                    Prodotto
-                                </label>
-
-                                <select
-                                    value={selectedProductId ?? ""}
-                                    onChange={(e) => setSelectedProductId(Number(e.target.value))}
-                                    className="w-full border border-slate-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-200"
-                                    required
-                                >
-                                    <option value="" disabled>
-                                        Seleziona prodotto
-                                    </option>
-
-                                    {products.map((product) => (
-                                        <option key={product.id} value={product.id}>
-                                            {product.name} - Giacenza: {product.stockQuantity}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {selectedProduct && (
-                                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                                    <p className="font-bold text-slate-800">{selectedProduct.name}</p>
-                                    <p className="text-sm text-slate-500">
-                                        Stock attuale: {selectedProduct.stockQuantity}
-                                    </p>
-                                    <p className="text-sm text-slate-500">
-                                        Soglia minima: {selectedProduct.reorderThreshold}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">
-                                    Quantità ricevuta
-                                </label>
-
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Number(e.target.value))}
-                                    className="w-full border border-slate-300 rounded-xl p-3 text-xl font-black outline-none focus:ring-2 focus:ring-blue-200"
-                                    required
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full bg-blue-700 disabled:bg-slate-300 text-white font-black rounded-xl p-4 hover:bg-blue-800 transition"
-                            >
-                                {submitting ? "Registrazione..." : "Registra carico"}
-                            </button>
-                        </form>
+                        <AlertTriangle className="w-5 h-5 text-orange-500" />
                     </div>
 
-                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm lg:col-span-2">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+                    <p className="text-3xl font-black text-orange-600 mt-2">
+                        {lowStockProducts.length}
+                    </p>
+                </div>
+
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <p className="text-slate-500 font-semibold">
+                            Pezzi totali a magazzino
+                        </p>
+                        <ClipboardCheck className="w-5 h-5 text-slate-400" />
+                    </div>
+
+                    <p className="text-3xl font-black text-black mt-2">
+                        {totalStockPieces}
+                    </p>
+                </div>
+            </section>
+
+            <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-5">
+                        <div>
                             <h2 className="text-xl font-black text-slate-900">
-                                Giacenze prodotti
+                                Prodotti sotto soglia
                             </h2>
 
-                            <input
-                                type="text"
-                                placeholder="Cerca prodotto, categoria o barcode..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="border border-slate-300 rounded-xl p-3 w-full md:w-80 outline-none focus:ring-2 focus:ring-blue-200"
-                            />
+                            <p className="text-sm text-slate-500 font-medium">
+                                Prodotti che richiedono attenzione del magazzino.
+                            </p>
                         </div>
 
-                        {loading ? (
-                            <p className="text-slate-500 font-semibold">Caricamento...</p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                    <tr className="border-b border-slate-200 text-sm text-slate-500">
-                                        <th className="py-3">Prodotto</th>
-                                        <th className="py-3">Categoria</th>
-                                        <th className="py-3">Giacenza</th>
-                                        <th className="py-3">Soglia</th>
-                                        <th className="py-3">Stato</th>
-                                    </tr>
-                                    </thead>
-
-                                    <tbody>
-                                    {filteredProducts.map((product) => {
-                                        const isLow =
-                                            product.stockQuantity < product.reorderThreshold;
-
-                                        return (
-                                            <tr
-                                                key={product.id}
-                                                className="border-b border-slate-100 hover:bg-slate-50"
-                                            >
-                                                <td className="py-4 font-bold text-slate-900">
-                                                    {product.name}
-                                                    {product.barcode && (
-                                                        <p className="text-xs text-slate-400 font-medium">
-                                                            Barcode: {product.barcode}
-                                                        </p>
-                                                    )}
-                                                </td>
-
-                                                <td className="py-4 text-slate-600">
-                                                    {product.category}
-                                                </td>
-
-                                                <td className="py-4 font-black text-slate-900">
-                                                    {product.stockQuantity}
-                                                </td>
-
-                                                <td className="py-4 text-slate-600">
-                                                    {product.reorderThreshold}
-                                                </td>
-
-                                                <td className="py-4">
-                                                    {isLow ? (
-                                                        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black">
-                                Sotto soglia
-                              </span>
-                                                    ) : (
-                                                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black">
-                                Disponibile
-                              </span>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                        <span className="bg-orange-100 text-orange-700 text-xs font-black px-3 py-1 rounded-full">
+                            {lowStockProducts.length} alert
+                        </span>
                     </div>
-                </section>
-            </div>
-        </main>
+
+                    {loadingProducts ? (
+                        <p className="text-slate-500 font-semibold">
+                            Caricamento prodotti...
+                        </p>
+                    ) : lowStockProducts.length === 0 ? (
+                        <div className="bg-green-50 border border-green-100 rounded-2xl p-8 text-center">
+                            <ClipboardCheck className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                            <p className="font-black text-green-700">
+                                Nessun prodotto sotto soglia
+                            </p>
+                            <p className="text-sm text-green-600 mt-1">
+                                Le giacenze sono attualmente sotto controllo.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {lowStockProducts.map((product) => {
+                                const missingQuantity = Math.max(
+                                    product.reorderThreshold - product.stockQuantity,
+                                    1
+                                );
+
+                                const isNotifying = notifyingProductId === product.id;
+
+                                return (
+                                    <div
+                                        key={product.id}
+                                        className="border border-orange-100 bg-orange-50 rounded-2xl p-4"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-14 h-14 bg-white border border-orange-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                                                    {product.imageUrl ? (
+                                                        <img
+                                                            src={`/products/${product.imageUrl}`}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-contain p-2"
+                                                        />
+                                                    ) : (
+                                                        <Package className="w-6 h-6 text-orange-500" />
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <p className="font-black text-slate-900">
+                                                        {product.name}
+                                                    </p>
+
+                                                    <p className="text-xs text-slate-500 font-medium">
+                                                        {product.category}
+                                                    </p>
+
+                                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-sm">
+                                                        <span className="font-bold text-red-600">
+                                                            Giacenza: {product.stockQuantity}
+                                                        </span>
+
+                                                        <span className="text-slate-500">
+                                                            Soglia: {product.reorderThreshold}
+                                                        </span>
+
+                                                        <span className="text-orange-700 font-bold">
+                                                            Mancano {missingQuantity} pezzi
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <span className="bg-orange-200 text-orange-800 text-xs font-black px-3 py-1 rounded-full whitespace-nowrap">
+                                                Sotto soglia
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            onClick={() => notifyProcurement(product)}
+                                            disabled={isNotifying}
+                                            className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-orange-600 disabled:bg-slate-300 text-white rounded-xl py-3 font-black hover:bg-orange-700 transition"
+                                        >
+                                            <Send className="w-4 h-4" />
+                                            {isNotifying
+                                                ? "Invio notifica..."
+                                                : "Sollecita approvvigionamento"}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-5">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">
+                                Merce in arrivo
+                            </h2>
+
+                            <p className="text-sm text-slate-500 font-medium">
+                                Ordini creati da Alessia e attesi al polo logistico.
+                            </p>
+                        </div>
+
+                        <Truck className="w-6 h-6 text-blue-600" />
+                    </div>
+
+                    {loadingOrders ? (
+                        <p className="text-slate-500 font-semibold">
+                            Caricamento ordini in arrivo...
+                        </p>
+                    ) : incomingOrders.length === 0 ? (
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-8 text-center">
+                            <Truck className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                            <p className="font-black text-slate-600">
+                                Nessuna merce in arrivo
+                            </p>
+                            <p className="text-sm text-slate-400 mt-1">
+                                Gli ordini di approvvigionamento creati da Alessia appariranno qui.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {incomingOrders.map((order) => {
+                                const orderedProduct = findProductForOrder(order);
+
+                                return (
+                                    <div
+                                        key={order.id}
+                                        className="border border-blue-100 bg-blue-50 rounded-2xl p-4"
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-20 h-20 bg-white border border-blue-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0">
+                                                {orderedProduct?.imageUrl ? (
+                                                    <img
+                                                        src={`/products/${orderedProduct.imageUrl}`}
+                                                        alt={
+                                                            order.productName ||
+                                                            orderedProduct.name ||
+                                                            "Prodotto ordinato"
+                                                        }
+                                                        className="w-full h-full object-contain p-3"
+                                                    />
+                                                ) : (
+                                                    <Package className="w-9 h-9 text-blue-500" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="text-lg font-black text-slate-900">
+                                                            {order.productName ||
+                                                                orderedProduct?.name ||
+                                                                "Prodotto non specificato"}
+                                                        </p>
+
+                                                        <p className="text-sm text-slate-600 mt-1">
+                                                            Quantità in arrivo:{" "}
+                                                            <span className="font-black text-blue-700">
+                                                                {order.quantity ?? "N/D"}
+                                                            </span>
+                                                        </p>
+                                                    </div>
+
+                                                    <span className="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full whitespace-nowrap">
+                                                        In arrivo
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
+                                                        <p className="text-xs text-slate-500 font-bold">
+                                                            Codice ordine
+                                                        </p>
+                                                        <p className="text-sm font-black text-slate-900 truncate">
+                                                            {order.orderNumber}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
+                                                        <p className="text-xs text-slate-500 font-bold">
+                                                            Fornitore
+                                                        </p>
+                                                        <p className="text-sm font-black text-slate-900 truncate">
+                                                            {order.supplierName}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
+                                                        <p className="text-xs text-slate-500 font-bold">
+                                                            Data ordine
+                                                        </p>
+                                                        <p className="text-sm font-black text-slate-900">
+                                                            {order.orderDate}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
+                                                        <p className="text-xs text-slate-500 font-bold">
+                                                            Totale
+                                                        </p>
+                                                        <p className="text-sm font-black text-blue-700">
+                                                            €{Number(order.totalAmount).toFixed(2)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </section>
+        </div>
     );
 }

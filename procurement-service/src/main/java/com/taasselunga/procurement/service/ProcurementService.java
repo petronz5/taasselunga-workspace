@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,7 +26,7 @@ public class ProcurementService {
 
     @Transactional
     public PurchaseOrder addOrder(PurchaseOrder order) {
-        order.setOrderDate(LocalDate.now());
+        order.setOrderDate(LocalDateTime.now());
 
         //Quando Alessia crea un ordine, l'ordine parte verso il fornitore.
         //Nel backend appare come CREATO, nel frontend come IN CONSEGNA

@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,7 +17,7 @@ public class PurchaseOrder {
     private Long id;
 
     private String orderNumber;
-    private LocalDate orderDate;
+    private LocalDateTime orderDate;
     private String supplierName;
     private Double totalAmount;
     private String status;
@@ -36,7 +35,7 @@ public class PurchaseOrder {
             String status
     ) {
         this.orderNumber = orderNumber;
-        this.orderDate = LocalDate.now();
+        this.orderDate = LocalDateTime.now();
         this.supplierName = supplierName;
         this.totalAmount = totalAmount;
         this.status = status;

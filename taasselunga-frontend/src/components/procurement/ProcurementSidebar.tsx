@@ -16,7 +16,7 @@ type SidebarProps = {
     onLogout: () => void;
 };
 
-export default function Sidebar({
+export default function ProcurementSidebar({
                                     items,
                                     alertsCount,
                                     onLogout,

@@ -17,7 +17,7 @@ public class PurchaseOrderController {
     private final ProcurementService procurementService;
 
     // RESPONSABILE_APPROVVIGIONAMENTO può visualizzare gli ordini
-    @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @GetMapping
     public ResponseEntity<List<PurchaseOrder>> getOrders() {
         return ResponseEntity.ok(procurementService.getAllOrders());

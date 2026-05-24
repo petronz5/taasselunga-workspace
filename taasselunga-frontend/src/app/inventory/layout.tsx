@@ -2,7 +2,7 @@
 
 import React from "react";
 import ProtectedRoute from "../../components/ProtectedRoute";
-import DashboardShell from "../../components/dashboard/DashboardShell";
+import ProcurementShell from "../../components/procurement/ProcurementShell";
 import { inventoryNav } from "../../config/InventoryNav";
 
 export default function InventoryLayout({
@@ -12,9 +12,9 @@ export default function InventoryLayout({
 }) {
     return (
         <ProtectedRoute>
-            <DashboardShell navItems={inventoryNav}>
+            <ProcurementShell navItems={inventoryNav}>
                 {children}
-            </DashboardShell>
+            </ProcurementShell>
         </ProtectedRoute>
     );
 }

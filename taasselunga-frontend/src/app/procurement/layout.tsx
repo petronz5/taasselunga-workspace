@@ -2,8 +2,8 @@
 
 import React from "react";
 import ProtectedRoute from "../../components/ProtectedRoute";
-import DashboardShell from "../../components/dashboard/DashboardShell";
-import { dashboardNav } from "../../config/DashboardNav";
+import ProcurementShell from "../../components/procurement/ProcurementShell";
+import { procurementNav } from "../../config/ProcurementNav";
 
 export default function DashboardLayout({
                                             children,
@@ -12,9 +12,9 @@ export default function DashboardLayout({
 }) {
     return (
         <ProtectedRoute>
-            <DashboardShell navItems={dashboardNav}>
+            <ProcurementShell navItems={procurementNav}>
                 {children}
-            </DashboardShell>
+            </ProcurementShell>
         </ProtectedRoute>
     );
 }

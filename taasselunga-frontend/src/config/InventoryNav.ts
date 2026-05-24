@@ -5,8 +5,8 @@ import {
     Store,
     ArrowLeftRight,
     Bell,
+    ScanBarcode,
 } from "lucide-react";
-
 export const inventoryNav = [
     {
         name: "Dashboard",
@@ -22,6 +22,11 @@ export const inventoryNav = [
         name: "Ricezione merce",
         href: "/inventory/receive",
         icon: Truck,
+    },
+    {
+        name: "Scanner barcode",
+        href: "/inventory/scanner",
+        icon: ScanBarcode,
     },
     {
         name: "Richieste POS",

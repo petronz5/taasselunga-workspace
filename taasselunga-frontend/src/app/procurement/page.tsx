@@ -130,7 +130,7 @@ export default function DashboardPage() {
                 </h2>
 
                 <p className="text-gray-500 font-medium">
-                    Ecco il riepilogo della situazione attuale.
+                    Responsabile Approvvigionamento.
                 </p>
             </header>
 

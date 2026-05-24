@@ -2,12 +2,10 @@ import {
     LayoutDashboard,
     Package,
     ShoppingCart,
-    Handshake,
-    CreditCard,
     Bell,
 } from "lucide-react";
 
-export const dashboardNav = [
+export const procurementNav = [
     {
         name: "Dashboard",
         href: "/procurement",
@@ -22,16 +20,6 @@ export const dashboardNav = [
         name: "Ordini",
         href: "/procurement/orders",
         icon: ShoppingCart,
-    },
-    {
-        name: "Fornitori",
-        href: "/procurement/suppliers",
-        icon: Handshake,
-    },
-    {
-        name: "Casse POS",
-        href: "/procurement/pos",
-        icon: CreditCard,
     },
     {
         name: "Notifiche",

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import Sidebar from "./Sidebar";
+import ProcurementSidebar from "./ProcurementSidebar";
 
 export type ProcurementNotification = {
     id: number;
@@ -19,34 +19,24 @@ type DashboardShellProps = {
     navItems: any[];
 };
 
-export default function DashboardShell({
-                                           children,
-                                           navItems,
-                                       }: DashboardShellProps) {
+export default function ProcurementShell({children, navItems,}: DashboardShellProps) {
     const [notifications, setNotifications] = useState<ProcurementNotification[]>([]);
     const router = useRouter();
 
     async function loadNotifications() {
         try {
-            const response = await fetch(
-                "http://localhost:8080/notifications/procurement"
-            );
+            const response = await fetch("http://localhost:8080/notifications/procurement");
 
             const data = await response.json();
 
             setNotifications(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Errore caricamento notifiche:", error);
-        }
+        } catch (error) { console.error("Errore caricamento notifiche:", error);}
     }
 
     useEffect(() => {
         loadNotifications();
 
-        window.addEventListener(
-            "procurement-notifications-updated",
-            loadNotifications
-        );
+        window.addEventListener("procurement-notifications-updated", loadNotifications);
 
         return () => {
             window.removeEventListener(
@@ -78,7 +68,7 @@ export default function DashboardShell({
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
-            <Sidebar
+            <ProcurementSidebar
                 items={navItems}
                 alertsCount={unreadCount}
                 onLogout={handleLogout}

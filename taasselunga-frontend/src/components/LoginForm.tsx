@@ -14,12 +14,31 @@ export default function LoginForm() {
 
     async function saveSessionAndRedirect(user: any) {
         const token = await user.getIdToken();
+        const userEmail = user.email || "";
 
         localStorage.setItem("access_token", token);
-        localStorage.setItem("user_email", user.email || "");
+        localStorage.setItem("user_email", userEmail);
         localStorage.setItem("user_name", user.displayName || "");
 
-        window.location.href = "/procurement";
+        if (userEmail.toLowerCase() === "alessia@taasselunga.it") {
+            window.location.href = "/procurement";
+            return;
+        }
+
+        if (userEmail.toLowerCase() === "antonio@taasselunga.it") {
+            window.location.href = "/inventory";
+            return;
+        }
+
+        if (userEmail.toLowerCase() === "luigi@taasselunga.it") {
+            window.location.href = "/pos";
+            return;
+        }
+
+        setError("Utente non autorizzato");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user_email");
+        localStorage.removeItem("user_name");
     }
 
     async function handleLogin(e: React.FormEvent) {
