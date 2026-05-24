@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import BarcodeScanner from "../../../components/BarcodeScanner";
+import Paginator from "../../../components/Paginator";
 
 type Product = {
     id: number;
@@ -29,6 +30,8 @@ export default function ProcurementProductsPage() {
 
     const [isScanning, setIsScanning] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     const [orderQuantities, setOrderQuantities] = useState<
         Record<number, number>
@@ -46,42 +49,32 @@ export default function ProcurementProductsPage() {
         fetchProducts();
     }, []);
 
-    async function fetchProducts() {
+    async function fetchProducts(page = 0) {
         try {
             setIsLoading(true);
-
             const token = localStorage.getItem("access_token");
 
             const response = await fetch(
-                "http://localhost:8080/api/inventory/products",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `http://localhost:8080/api/inventory/products?page=${page}&size=9`,
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            if (!response.ok) {
-                throw new Error("Errore caricamento prodotti");
-            }
+            if (!response.ok) throw new Error("Errore caricamento prodotti");
 
             const data = await response.json();
 
-            setProducts(data);
+            setProducts(data.content);       // ← era: setProducts(data)
+            setTotalPages(data.totalPages);
+            setCurrentPage(data.number);
 
-            const initialQuantities = data.reduce(
+            const initialQuantities = data.content.reduce(  // ← era: data.reduce
                 (acc: Record<number, number>, product: Product) => {
                     acc[product.id] = Math.max(
-                        product.reorderThreshold -
-                        product.stockQuantity,
-                        1
+                        product.reorderThreshold - product.stockQuantity, 1
                     );
-
                     return acc;
-                },
-                {}
+                }, {}
             );
-
             setOrderQuantities(initialQuantities);
         } catch (error) {
             console.error(error);
@@ -526,6 +519,11 @@ export default function ProcurementProductsPage() {
                     })}
                 </div>
             )}
+            <Paginator
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => fetchProducts(page)}
+            />
         </div>
     );
 }

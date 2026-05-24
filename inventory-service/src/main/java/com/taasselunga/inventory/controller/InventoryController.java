@@ -3,6 +3,7 @@ package com.taasselunga.inventory.controller;
 import com.taasselunga.inventory.dto.ProductResponseDTO;
 import com.taasselunga.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +20,11 @@ public class InventoryController {
     // Accessibile a RESPONSABILE_APPROVVIGIONAMENTO e OPERATORE_DI_MAGAZZINO
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @GetMapping("/products")
-    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
-        return ResponseEntity.ok(inventoryService.getAllProductsWithStock());
+    public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        return ResponseEntity.ok(inventoryService.getAllProductsWithStock(page, size));
     }
 
     // Solo OPERATORE_DI_MAGAZZINO può registrare la merce

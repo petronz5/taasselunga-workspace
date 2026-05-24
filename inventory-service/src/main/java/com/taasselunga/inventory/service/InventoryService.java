@@ -11,10 +11,13 @@ import com.taasselunga.inventory.repository.ProductRepository;
 import com.taasselunga.inventory.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,15 +27,12 @@ public class InventoryService {
     private final ProductRepository productRepository; // Aggiunto il repository dei prodotti
     private final RabbitTemplate rabbitTemplate;
 
-    // --- LOGICA PER IL FRONTEND DI ALESSIA ---
-    public List<ProductResponseDTO> getAllProductsWithStock() {
-        return productRepository.findAll().stream().map(product -> {
-            // Cerca la giacenza, se non c'è mette 0 di default
+    public Page<ProductResponseDTO> getAllProductsWithStock(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findAll(pageable).map(product -> {
             Stock stock = stockRepository.findByProductId(product.getId()).orElse(null);
-
             Integer qty = (stock != null) ? stock.getAvailableQuantity().getValue() : 0;
             Integer threshold = (stock != null) ? stock.getThreshold().getMinimumLevel() : 0;
-
             return new ProductResponseDTO(
                     product.getId(),
                     product.getName(),
@@ -43,7 +43,7 @@ public class InventoryService {
                     product.getImageUrl(),
                     product.getBarcode()
             );
-        }).toList();
+        });
     }
 
     // --- LOGICA PER IL PALMARE DI ANTONIO ---
