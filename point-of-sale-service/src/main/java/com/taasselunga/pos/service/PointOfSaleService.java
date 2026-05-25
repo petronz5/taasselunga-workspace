@@ -3,6 +3,8 @@ package com.taasselunga.pos.service;
 import com.taasselunga.pos.domain.RequestStatus;
 import com.taasselunga.pos.client.InventoryClient;
 import com.taasselunga.pos.config.RabbitMQConfig;
+import com.taasselunga.pos.domain.StoreStock;
+import com.taasselunga.pos.repository.StoreStockRepository;
 import com.taasselunga.pos.domain.ReplenishmentRequest;
 import com.taasselunga.pos.repository.ReplenishmentRequestRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class PointOfSaleService {
     private final ReplenishmentRequestRepository requestRepository;
     private final RabbitTemplate rabbitTemplate;
     private final InventoryClient inventoryClient;
+    private final StoreStockRepository storeStockRepository;
 
     // Crea una richiesta di rifornimento dal punto vendita
     @Transactional
@@ -75,4 +78,9 @@ public class PointOfSaleService {
 
         return requestRepository.save(request);
     }
+
+    public List<StoreStock> getStoreStock(Long storeId) {
+        return storeStockRepository.findByStoreId(storeId);
+    }
+
 }

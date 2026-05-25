@@ -2,6 +2,7 @@ package com.taasselunga.pos.controller;
 
 import com.taasselunga.pos.domain.ReplenishmentRequest;
 import com.taasselunga.pos.service.PointOfSaleService;
+import com.taasselunga.pos.domain.StoreStock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -82,5 +83,11 @@ public class PointOfSaleController {
         return ResponseEntity.ok(
                 posService.updateRequestStatus(id, status)
         );
+    }
+
+    @PreAuthorize("hasRole('ROLE_RESPONSABILE_PUNTO_VENDITA')")
+    @GetMapping("/store-stock/{storeId}")
+    public ResponseEntity<List<StoreStock>> getStoreStock(@PathVariable Long storeId) {
+        return ResponseEntity.ok(posService.getStoreStock(storeId));
     }
 }
