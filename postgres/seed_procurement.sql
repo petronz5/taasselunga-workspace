@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict ZLSCsvD5oZZ7H6UmfOUFa6mBtAtKzgJfSiFY8bykaKD0PpMqDTcKSObt0beFfjQ
+\restrict NrjgT2zUu3M6FpYRUWNF7ZagPzUzvBJaomVwsXj4lLXzC7vlnINEA5DqLwe1lUG
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-15 13:22:21
+-- Started on 2026-05-25 20:56:40
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -44,13 +44,12 @@ COPY public.order_line (line_id, product_id, quantity) FROM stdin;
 -- Data for Name: purchase_order; Type: TABLE DATA; Schema: public; Owner: root
 --
 
-COPY public.purchase_order (id, order_date, order_number, status, supplier_name, total_amount) FROM stdin;
-1	2026-05-14	PO-2026-0001	IN_ATTESA	Parmalat S.p.A.	520
-2	2026-05-14	PO-2026-0002	INVIATO	Barilla G. e R. Fratelli	780
-3	2026-05-14	PO-2026-0003	IN_ATTESA	AIA Alimentari	340
-4	2026-05-14	PO-2026-0004	COMPLETATO	Mutti S.p.A.	430
-5	2026-05-14	PO-2026-0005	BOZZA	Ferrero Distribuzione	610
-6	2026-05-15	ORD-AUTO-1c5e9555	IN_ATTESA	Fornitore Da Assegnare	0
+COPY public.purchase_order (id, order_date, order_number, status, supplier_name, total_amount, product_id, product_name, quantity, unit_price) FROM stdin;
+142	2026-05-25 13:12:30.148114	ORD-1779714748486	CONSEGNATO	Fornitore da assegnare	120	4	Spaghetti Barilla 500g	100	1.2
+143	2026-05-25 13:17:10.804956	ORD-1779715030826	CONSEGNATO	Fornitore da assegnare	120	4	Spaghetti Barilla 500g	100	1.2
+144	2026-05-25 13:29:25.71622	ORD-1779715765912	CONSEGNATO	Fornitore da assegnare	120	4	Spaghetti Barilla 500g	100	1.2
+140	2026-05-25 12:40:22.750489	ORD-1779712821785	CONSEGNATO	Fornitore da assegnare	120	4	Spaghetti Barilla 500g	100	1.2
+141	2026-05-25 12:52:27.570037	ORD-1779713545637	CONSEGNATO	Fornitore da assegnare	175	8	Coca Cola 1.5L	100	1.75
 \.
 
 
@@ -86,7 +85,7 @@ SELECT pg_catalog.setval('public.order_line_line_id_seq', 7, true);
 -- Name: purchase_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.purchase_order_id_seq', 5, true);
+SELECT pg_catalog.setval('public.purchase_order_id_seq', 144, true);
 
 
 --
@@ -98,11 +97,11 @@ SELECT pg_catalog.setval('public.purchase_order_id_seq', 5, true);
 SELECT pg_catalog.setval('public.supplier_id_seq', 7, true);
 
 
--- Completed on 2026-05-15 13:22:21
+-- Completed on 2026-05-25 20:56:40
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ZLSCsvD5oZZ7H6UmfOUFa6mBtAtKzgJfSiFY8bykaKD0PpMqDTcKSObt0beFfjQ
+\unrestrict NrjgT2zUu3M6FpYRUWNF7ZagPzUzvBJaomVwsXj4lLXzC7vlnINEA5DqLwe1lUG
 
