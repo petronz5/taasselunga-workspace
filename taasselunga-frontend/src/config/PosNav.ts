@@ -13,23 +13,23 @@ export const posNav = [
         icon: LayoutDashboard,
     },
     {
-        name: "Catalogo prodotti",
+        name: "Product Catalog",
         href: "/pos/products",
         icon: Package,
     },
     {
-        name: "Nuova vendita",
+        name: "New Sale",
         href: "/pos/sales",
         icon: ShoppingCart,
     },
     {
-        name: "Richieste rifornimento",
+        name: "Replenishments",
         href: "/pos/replenishment",
         icon: ClipboardList,
     },
     {
-        name: "Notifiche",
-        href: "/pos/notifiche",
+        name: "Notifications",
+        href: "/pos/notifications",
         icon: Bell,
     },
 ];
