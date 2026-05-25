@@ -36,7 +36,7 @@
             try {
                 setIsLoading(true);
     
-                const response = await fetch("http://localhost:8080/api/inventory/products", {
+                const response = await fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
                     headers: getAuthHeaders(),
                 });
     

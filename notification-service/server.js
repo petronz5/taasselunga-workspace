@@ -161,22 +161,41 @@ async function connectRabbitMQ() {
         channel.consume(NOTIFICATION_QUEUE, async (msg) => {
             if (msg !== null) {
                 try {
+                    console.log("RAW MESSAGE:", msg.content.toString());
+
                     const messageContent = msg.content.toString();
                     const routingKey = msg.fields.routingKey;
 
                     console.log("Notifica ricevuta:", messageContent);
                     console.log("Routing key ricevuta:", routingKey);
 
-                    const targetRole = getTargetRoleFromRoutingKey(routingKey);
-                    const title = getTitleFromRoutingKey(routingKey);
+                    if (routingKey === PROCUREMENT_ROUTING_KEY) {
+                        const inventoryNotification = await createNotification({
+                            targetRole: "INVENTORY",
+                            title: "Nuovo ordine in arrivo",
+                            message: messageContent,
+                        });
 
-                    const notification = await createNotification({
-                        targetRole,
-                        title,
-                        message: messageContent,
-                    });
+                        const procurementNotification = await createNotification({
+                            targetRole: "PROCUREMENT",
+                            title: "Ordine inviato",
+                            message: messageContent,
+                        });
 
-                    io.emit("stock_alert", notification);
+                        io.emit("stock_alert", inventoryNotification);
+                        io.emit("stock_alert", procurementNotification);
+                    } else {
+                        const targetRole = getTargetRoleFromRoutingKey(routingKey);
+                        const title = getTitleFromRoutingKey(routingKey);
+
+                        const notification = await createNotification({
+                            targetRole,
+                            title,
+                            message: messageContent,
+                        });
+
+                        io.emit("stock_alert", notification);
+                    }
 
                     channel.ack(msg);
                 } catch (error) {

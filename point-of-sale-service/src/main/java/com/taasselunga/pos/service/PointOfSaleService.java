@@ -1,5 +1,6 @@
 package com.taasselunga.pos.service;
 
+import com.taasselunga.pos.domain.RequestStatus;
 import com.taasselunga.pos.client.InventoryClient;
 import com.taasselunga.pos.config.RabbitMQConfig;
 import com.taasselunga.pos.domain.ReplenishmentRequest;
@@ -60,5 +61,18 @@ public class PointOfSaleService {
     // POS legge prodotti e stock da Inventory usando il token JWT
     public List<?> getProductsFromInventory(String token) {
         return inventoryClient.getProductsWithStock(token);
+    }
+
+    public List<ReplenishmentRequest> getAllRequests() {
+        return requestRepository.findAll();
+    }
+
+    public ReplenishmentRequest updateRequestStatus(Long id, String status) {
+        ReplenishmentRequest request = requestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Richiesta non trovata"));
+
+        request.setStatus(new RequestStatus(status));
+
+        return requestRepository.save(request);
     }
 }

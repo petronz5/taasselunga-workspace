@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import ProcurementSidebar from "./ProcurementSidebar";
+import InventorySidebar from "./InventorySidebar";
 
-export type ProcurementNotification = {
+export type InventoryNotification = {
     id: number;
     targetRole: string;
     title: string;
@@ -14,33 +14,50 @@ export type ProcurementNotification = {
     createdAt: string;
 };
 
-type DashboardShellProps = {
+type InventoryShellProps = {
     children: React.ReactNode;
     navItems: any[];
 };
 
-export default function ProcurementShell({children, navItems,}: DashboardShellProps) {
-    const [notifications, setNotifications] = useState<ProcurementNotification[]>([]);
+export default function InventoryShell({
+                                           children,
+                                           navItems,
+                                       }: InventoryShellProps) {
+    const [notifications, setNotifications] = useState<InventoryNotification[]>([]);
     const router = useRouter();
 
     async function loadNotifications() {
         try {
-            const response = await fetch("http://localhost:8080/notifications/procurement");
+            const response = await fetch(
+                "http://localhost:8080/notifications/inventory"
+            );
 
-            const data = await response.json();
+            if (!response.ok) {
+                setNotifications([]);
+                return;
+            }
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : [];
 
             setNotifications(Array.isArray(data) ? data : []);
-        } catch (error) { console.error("Errore caricamento notifiche:", error);}
+        } catch (error) {
+            console.error("Errore caricamento notifiche inventory:", error);
+            setNotifications([]);
+        }
     }
 
     useEffect(() => {
         loadNotifications();
 
-        window.addEventListener("procurement-notifications-updated", loadNotifications);
+        window.addEventListener(
+            "inventory-notifications-updated",
+            loadNotifications
+        );
 
         return () => {
             window.removeEventListener(
-                "procurement-notifications-updated",
+                "inventory-notifications-updated",
                 loadNotifications
             );
         };
@@ -49,8 +66,8 @@ export default function ProcurementShell({children, navItems,}: DashboardShellPr
     useEffect(() => {
         const socket = io("http://localhost:8083");
 
-        socket.on("stock_alert", (notification) => {
-            if (notification.targetRole !== "PROCUREMENT") {
+        socket.on("stock_alert", (notification: InventoryNotification) => {
+            if (notification.targetRole !== "INVENTORY") {
                 return;
             }
 
@@ -65,6 +82,9 @@ export default function ProcurementShell({children, navItems,}: DashboardShellPr
     function handleLogout() {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_email");
+        localStorage.removeItem("user_name");
+
         router.push("/");
     }
 
@@ -72,7 +92,7 @@ export default function ProcurementShell({children, navItems,}: DashboardShellPr
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
-            <ProcurementSidebar
+            <InventorySidebar
                 items={navItems}
                 alertsCount={unreadCount}
                 onLogout={handleLogout}

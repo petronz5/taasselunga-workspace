@@ -29,12 +29,12 @@ export const inventoryNav = [
         icon: ScanBarcode,
     },
     {
-        name: "Richieste POS",
+        name: "Richieste punti vendita",
         href: "/inventory/pos-requests",
         icon: Store,
     },
     {
-        name: "Movimenti",
+        name: "Storico spedizioni",
         href: "/inventory/movements",
         icon: ArrowLeftRight,
     },

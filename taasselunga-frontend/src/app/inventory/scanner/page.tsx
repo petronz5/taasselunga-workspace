@@ -2,22 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 import BarcodeScanner from "../../../components/BarcodeScanner";
+import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
 
 export default function ScannerPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     // Carichiamo i prodotti per poterli filtrare dopo la scansione
     useEffect(() => {
         const fetchProducts = async () => {
             const token = localStorage.getItem("access_token");
-            const res = await fetch("http://localhost:8080/api/inventory/products", {
+            const res = await fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
-            setProducts(data);
+
+            setProducts(Array.isArray(data) ? data : []);
         };
         fetchProducts();
     }, []);
@@ -32,8 +35,7 @@ export default function ScannerPage() {
                 <div className="h-96">
                     <BarcodeScanner
                         onScan={(code) => setScannedBarcode(code)}
-                        onClose={() => {}}
-                    />
+                        onClose={() => router.push("/inventory")}                    />
                 </div>
             ) : (
                 <div className="bg-white p-6 rounded-3xl border border-slate-200">

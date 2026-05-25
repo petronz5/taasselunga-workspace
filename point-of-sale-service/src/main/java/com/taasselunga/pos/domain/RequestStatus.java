@@ -2,6 +2,7 @@ package com.taasselunga.pos.domain;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,3 +13,4 @@ import lombok.NoArgsConstructor;
 public class RequestStatus {
     private String statusName;
 }
+

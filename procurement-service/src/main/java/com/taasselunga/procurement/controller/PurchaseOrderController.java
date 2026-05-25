@@ -31,7 +31,7 @@ public class PurchaseOrderController {
     }
 
     // RESPONSABILE_APPROVVIGIONAMENTO può aggiornare lo stato ordine
-    @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<PurchaseOrder> updateStatus(
             @PathVariable Long id,

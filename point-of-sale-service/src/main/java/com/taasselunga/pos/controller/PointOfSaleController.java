@@ -49,6 +49,12 @@ public class PointOfSaleController {
         return ResponseEntity.ok(posService.getStoreRequests(storeId));
     }
 
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
+    @GetMapping("/requests")
+    public ResponseEntity<List<ReplenishmentRequest>> getAllRequests() {
+        return ResponseEntity.ok(posService.getAllRequests());
+    }
+
     // Verifica se l’utente autenticato è responsabile punto vendita.
     private boolean isStoreManager(Authentication authentication) {
         return authentication.getAuthorities()
@@ -65,5 +71,16 @@ public class PointOfSaleController {
                 .stream()
                 .anyMatch(authority ->
                         authority.getAuthority().equals(requiredRole));
+    }
+
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
+    @PatchMapping("/requests/{id}/status")
+    public ResponseEntity<ReplenishmentRequest> updateRequestStatus(
+            @PathVariable Long id,
+            @RequestParam String status
+    ) {
+        return ResponseEntity.ok(
+                posService.updateRequestStatus(id, status)
+        );
     }
 }

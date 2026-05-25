@@ -13,7 +13,7 @@ export default function LoginForm() {
     const [error, setError] = useState("");
 
     async function saveSessionAndRedirect(user: any) {
-        const token = await user.getIdToken();
+        const token = await user.getIdToken(true);
         const userEmail = user.email || "";
 
         localStorage.setItem("access_token", token);

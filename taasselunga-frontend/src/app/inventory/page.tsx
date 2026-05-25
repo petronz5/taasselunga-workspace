@@ -57,7 +57,7 @@ export default function InventoryPage() {
         try {
             setLoadingProducts(true);
 
-            const response = await fetch("http://localhost:8080/api/inventory/products", {
+            const response = await fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
                 headers: getAuthHeaders(),
             });
 
@@ -65,8 +65,15 @@ export default function InventoryPage() {
                 throw new Error("Errore caricamento prodotti");
             }
 
-            const data: Product[] = await response.json();
-            setProducts(data);
+            const data = await response.json();
+            console.log("PRODUCTS RESPONSE:", data);
+            setProducts(
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.content)
+                        ? data.content
+                        : []
+            );
         } catch (error) {
             console.error("Errore caricamento prodotti:", error);
             setProducts([]);
@@ -87,16 +94,12 @@ export default function InventoryPage() {
                 throw new Error("Errore caricamento ordini in arrivo");
             }
 
-            const data: IncomingOrder[] = await response.json();
+            const data = await response.json();
+            const orders: IncomingOrder[] = Array.isArray(data) ? data : [];
 
-            const sortedOrders = data
+            const sortedOrders = orders
                 .filter((order) => order.status === "CREATO")
-                .sort((a, b) => {
-                    const dateA = new Date(a.orderDate).getTime();
-                    const dateB = new Date(b.orderDate).getTime();
-
-                    return dateB - dateA;
-                });
+                .sort((a, b) => b.id - a.id);
 
             setIncomingOrders(sortedOrders);
         } catch (error) {
@@ -153,7 +156,7 @@ export default function InventoryPage() {
                 throw new Error("Errore invio notifica");
             }
 
-            alert(`Notifica inviata ad Alessia per ${product.name}`);
+            alert(`Operazione di sollecitazione per ${product.name} inoltrata con successo`);
         } catch (error) {
             console.error("Errore invio notifica:", error);
             alert("Errore durante l'invio della notifica");
@@ -170,50 +173,10 @@ export default function InventoryPage() {
                 </h1>
 
                 <p className="text-slate-500 mt-2 font-medium">
-                    Monitora le giacenze del magazzino centrale e la merce in arrivo dai fornitori.
+                    Operatore di Magazzino.
                 </p>
             </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <p className="text-slate-500 font-semibold">
-                            Prodotti totali
-                        </p>
-                        <Package className="w-5 h-5 text-slate-400" />
-                    </div>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {products.length}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-orange-200 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <p className="text-slate-500 font-semibold">
-                            Prodotti sotto soglia
-                        </p>
-                        <AlertTriangle className="w-5 h-5 text-orange-500" />
-                    </div>
-
-                    <p className="text-3xl font-black text-orange-600 mt-2">
-                        {lowStockProducts.length}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <p className="text-slate-500 font-semibold">
-                            Pezzi totali a magazzino
-                        </p>
-                        <ClipboardCheck className="w-5 h-5 text-slate-400" />
-                    </div>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {totalStockPieces}
-                    </p>
-                </div>
-            </section>
 
             <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
