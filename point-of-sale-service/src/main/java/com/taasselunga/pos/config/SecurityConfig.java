@@ -57,6 +57,7 @@ public class SecurityConfig {
 
         if ("luigi@taasselunga.it".equalsIgnoreCase(email)) {
             authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_PUNTO_VENDITA"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_store_1"));
         }
 
         return authorities;

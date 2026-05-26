@@ -139,7 +139,7 @@ export default function InventoryPage() {
         try {
             setNotifyingProductId(product.id);
 
-            const response = await fetch("http://localhost:8080/notifications", {
+            const response = await fetch("http://localhost:8080/api/notifications", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

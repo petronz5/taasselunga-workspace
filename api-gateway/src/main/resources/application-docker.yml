@@ -8,3 +8,33 @@ spring:
         jwt:
           issuer-uri: https://securetoken.google.com/taasselunga-4d6e5
           jwk-set-uri: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+
+  cloud:
+    gateway:
+      routes:
+        - id: inventory-service
+          uri: http://inventory-service:8081
+          predicates:
+            - Path=/api/inventory/**
+
+        - id: procurement-service
+          uri: http://procurement-service:8082
+          predicates:
+            - Path=/api/procurement/**
+
+        - id: point-of-sale-service
+          uri: http://point-of-sale-service:8084
+          predicates:
+            - Path=/api/pos/**
+
+        - id: notification-service
+          uri: http://notification-service:8083
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications(?<segment>/?.*), /notifications${segment}
+
+        - id: notification-service-direct
+          uri: http://notification-service:8083
+          predicates:
+            - Path=/notifications/**

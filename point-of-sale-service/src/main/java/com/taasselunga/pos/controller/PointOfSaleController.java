@@ -1,8 +1,8 @@
 package com.taasselunga.pos.controller;
 
 import com.taasselunga.pos.domain.ReplenishmentRequest;
-import com.taasselunga.pos.service.PointOfSaleService;
 import com.taasselunga.pos.domain.StoreStock;
+import com.taasselunga.pos.service.PointOfSaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,30 +19,44 @@ public class PointOfSaleController {
 
     private final PointOfSaleService posService;
 
-    // Solo il responsabile punto vendita può creare richieste di rifornimento.
+    @PreAuthorize("hasRole('RESPONSABILE_PUNTO_VENDITA')")
+    @GetMapping("/products")
+    public ResponseEntity<Object> getProducts(Authentication authentication) {
+        String token = getToken(authentication);
+
+        return ResponseEntity.ok(posService.getProductsFromInventory(token));
+    }
+
     @PreAuthorize("hasRole('RESPONSABILE_PUNTO_VENDITA')")
     @PostMapping("/replenishment")
-    public ResponseEntity<ReplenishmentRequest> requestReplenishment(@RequestParam Long storeId, @RequestParam Long productId, @RequestParam Integer quantity, Authentication authentication) {
-
-        // Il responsabile punto vendita può creare richieste solo per il proprio store.
+    public ResponseEntity<ReplenishmentRequest> requestReplenishment(
+            @RequestParam Long storeId,
+            @RequestParam Long productId,
+            @RequestParam Integer quantity,
+            Authentication authentication
+    ) {
         if (!hasStoreAccess(authentication, storeId)) {
             return ResponseEntity.status(403).build();
         }
 
-        // Recupera il JWT ricevuto dal frontend per inoltrarlo a Inventory.
-        String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
+        String token = getToken(authentication);
 
-        ReplenishmentRequest request = posService.createReplenishmentRequest(storeId, productId, quantity, token);
+        ReplenishmentRequest request = posService.createReplenishmentRequest(
+                storeId,
+                productId,
+                quantity,
+                token
+        );
 
         return ResponseEntity.ok(request);
     }
 
-    // Il responsabile punto vendita vede solo il proprio store. Magazzino e approvvigionamento possono vedere tutte le richieste.
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'RESPONSABILE_PUNTO_VENDITA', 'OPERATORE_DI_MAGAZZINO')")
     @GetMapping("/store/{storeId}/requests")
-    public ResponseEntity<List<ReplenishmentRequest>> getRequestsByStore(@PathVariable Long storeId, Authentication authentication) {
-
-        // Il controllo sullo store vale solo per il responsabile punto vendita.
+    public ResponseEntity<List<ReplenishmentRequest>> getRequestsByStore(
+            @PathVariable Long storeId,
+            Authentication authentication
+    ) {
         if (isStoreManager(authentication) && !hasStoreAccess(authentication, storeId)) {
             return ResponseEntity.status(403).build();
         }
@@ -56,7 +70,37 @@ public class PointOfSaleController {
         return ResponseEntity.ok(posService.getAllRequests());
     }
 
-    // Verifica se l’utente autenticato è responsabile punto vendita.
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
+    @PatchMapping("/requests/{id}/status")
+    public ResponseEntity<ReplenishmentRequest> updateRequestStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            Authentication authentication
+    ) {
+        String token = getToken(authentication);
+
+        return ResponseEntity.ok(
+                posService.updateRequestStatus(id, status, token)
+        );
+    }
+
+    @PreAuthorize("hasRole('RESPONSABILE_PUNTO_VENDITA')")
+    @GetMapping("/store-stock/{storeId}")
+    public ResponseEntity<List<StoreStock>> getStoreStock(
+            @PathVariable Long storeId,
+            Authentication authentication
+    ) {
+        if (!hasStoreAccess(authentication, storeId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        return ResponseEntity.ok(posService.getStoreStock(storeId));
+    }
+
+    private String getToken(Authentication authentication) {
+        return ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
+    }
+
     private boolean isStoreManager(Authentication authentication) {
         return authentication.getAuthorities()
                 .stream()
@@ -64,7 +108,6 @@ public class PointOfSaleController {
                         authority.getAuthority().equals("ROLE_RESPONSABILE_PUNTO_VENDITA"));
     }
 
-    // Verifica se l’utente possiede il ruolo dello store richiesto: store_1, store_2, store_3, ...
     private boolean hasStoreAccess(Authentication authentication, Long storeId) {
         String requiredRole = "ROLE_store_" + storeId;
 
@@ -72,22 +115,5 @@ public class PointOfSaleController {
                 .stream()
                 .anyMatch(authority ->
                         authority.getAuthority().equals(requiredRole));
-    }
-
-    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
-    @PatchMapping("/requests/{id}/status")
-    public ResponseEntity<ReplenishmentRequest> updateRequestStatus(
-            @PathVariable Long id,
-            @RequestParam String status
-    ) {
-        return ResponseEntity.ok(
-                posService.updateRequestStatus(id, status)
-        );
-    }
-
-    @PreAuthorize("hasRole('ROLE_RESPONSABILE_PUNTO_VENDITA')")
-    @GetMapping("/store-stock/{storeId}")
-    public ResponseEntity<List<StoreStock>> getStoreStock(@PathVariable Long storeId) {
-        return ResponseEntity.ok(posService.getStoreStock(storeId));
     }
 }

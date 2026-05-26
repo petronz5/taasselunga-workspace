@@ -100,7 +100,7 @@ postgres/
 
 ## File disponibili
 
-- seed_inventory.sql
+- seed_inventory.sql.disabled
 - seed_procurement.sql
 - seed_pos.sql
 
@@ -111,7 +111,7 @@ postgres/
 ## Inventory
 
 ```powershell
-docker exec -i taasselunga-postgres psql -U root -d db_inventory < postgres/seed_inventory.sql
+docker exec -i taasselunga-postgres psql -U root -d db_inventory < postgres/seed_inventory.sql.disabled
 ```
 
 ## Procurement

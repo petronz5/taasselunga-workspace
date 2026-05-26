@@ -1,5 +1,6 @@
 package com.taasselunga.inventory.controller;
 
+import com.taasselunga.inventory.dto.ReplenishmentRequestDto;
 import com.taasselunga.inventory.dto.ProductResponseDTO;
 import com.taasselunga.inventory.service.InventoryService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class InventoryController {
     private final InventoryService inventoryService;
 
     // Accessibile a RESPONSABILE_APPROVVIGIONAMENTO e OPERATORE_DI_MAGAZZINO
-    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'ROLE_RESPONSABILE_PUNTO_VENDITA')")
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'RESPONSABILE_PUNTO_VENDITA')")
     @GetMapping("/products")
     public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
@@ -49,7 +50,7 @@ public class InventoryController {
     }
 
     // RESPONSABILE_APPROVVIGIONAMENTO, OPERATORE_DI_MAGAZZINO e RESPONSABILE_PUNTO_VENDITA possono aggiornare le giacenze
-    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'ROLE_RESPONSABILE_PUNTO_VENDITA')")
+    @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'RESPONSABILE_PUNTO_VENDITA')")
     @PutMapping("/{productId}/deduct")
     public ResponseEntity<String> deductStock(
             @PathVariable Long productId,
@@ -77,5 +78,15 @@ public class InventoryController {
     ) {
         inventoryService.receiveGoods(productId, quantity);
         return ResponseEntity.ok("Merce ricevuta internamente e giacenze aggiornate.");
+    }
+
+    @PostMapping("/replenishment")
+    public ResponseEntity<Void> receiveReplenishmentRequest(
+            @RequestBody ReplenishmentRequestDto request
+    ) {
+        // per ora anche solo log va bene
+        System.out.println("Replenishment request received from POS: " + request);
+
+        return ResponseEntity.ok().build();
     }
 }

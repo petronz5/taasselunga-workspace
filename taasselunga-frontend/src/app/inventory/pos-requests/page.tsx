@@ -46,13 +46,8 @@ export default function PosRequestsPage() {
     }
 
     function normalizeStatus(status: any) {
-        if (typeof status === "string") {
-            return status;
-        }
-
-        if (status?.statusName) {
-            return status.statusName;
-        }
+        if (typeof status === "string") return status;
+        if (status?.statusName) return status.statusName;
 
         return "CREATO";
     }
@@ -94,12 +89,12 @@ export default function PosRequestsPage() {
                     : [];
 
             const normalizedRequests: PosRequest[] = rawRequests.map((request, index) => ({
-                id: request.id ?? index,
+                id: request.requestId ?? request.id ?? index,
                 storeId: request.storeId ?? request.store?.id ?? 0,
                 productId: request.productId ?? request.product?.id ?? 0,
-                quantity: request.quantity ?? 0,
+                quantity: request.requestedQuantity ?? request.quantity ?? 0,
                 status: normalizeStatus(request.status),
-                createdAt: request.createdAt ?? request.requestDate ?? "",
+                createdAt: request.requestDate ?? request.createdAt ?? "",
             }));
 
             setProducts(normalizedProducts);
@@ -115,7 +110,11 @@ export default function PosRequestsPage() {
 
     const pendingRequests = useMemo(() => {
         return requests
-            .filter((request) => request.status !== "SPEDITO")
+            .filter(
+                (request) =>
+                    request.status !== "SPEDITO" &&
+                    request.status !== "COMPLETATA"
+            )
             .sort((a, b) => b.id - a.id);
     }, [requests]);
 
@@ -123,9 +122,26 @@ export default function PosRequestsPage() {
         return products.find((product) => product.id === productId);
     }
 
+    async function sendPosNotification(productName: string) {
+        await fetch("http://localhost:8080/notifications", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeaders(),
+            },
+            body: JSON.stringify({
+                targetRole: "POS",
+                title: "Spedizione in arrivo",
+                message: `La spedizione per ${productName} è stata preparata dal magazzino centrale ed è in arrivo al punto vendita.`,
+            }),
+        });
+    }
+
     async function prepareShipment(request: PosRequest) {
         try {
             setProcessingId(request.id);
+
+            const product = findProduct(request.productId);
 
             const response = await fetch(
                 `http://localhost:8080/api/pos/requests/${request.id}/status?status=SPEDITO`,
@@ -136,15 +152,34 @@ export default function PosRequestsPage() {
             );
 
             if (!response.ok) {
-                throw new Error("Errore aggiornamento richiesta");
+                const text = await response.text();
+
+                if (
+                    text.toLowerCase().includes("stock") ||
+                    text.toLowerCase().includes("giacenza") ||
+                    text.toLowerCase().includes("insufficient")
+                ) {
+                    throw new Error(
+                        "Stock insufficiente nel magazzino centrale per evadere questa richiesta"
+                    );
+                }
+
+                throw new Error(`Errore aggiornamento richiesta: ${response.status} ${text}`);
             }
+
+            await sendPosNotification(product?.name || "il prodotto richiesto");
 
             alert("Spedizione preparata con successo");
 
             await loadData();
         } catch (error) {
             console.error("Errore preparazione spedizione:", error);
-            alert("Errore durante la preparazione della spedizione");
+
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : "Errore durante la preparazione della spedizione"
+            );
         } finally {
             setProcessingId(null);
         }
@@ -179,11 +214,7 @@ export default function PosRequestsPage() {
                     </p>
 
                     <p className="text-3xl font-black text-blue-700 mt-2">
-                        {
-                            new Set(
-                                pendingRequests.map((request) => request.storeId)
-                            ).size
-                        }
+                        {new Set(pendingRequests.map((request) => request.storeId)).size}
                     </p>
                 </div>
 

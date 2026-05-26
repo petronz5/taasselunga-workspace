@@ -111,6 +111,26 @@ app.delete("/notifications/inventory", async (req, res) => {
     }
 });
 
+app.get("/notifications/pos", async (req, res) => {
+    try {
+        const notifications = await getNotificationsByRole("POS");
+        res.json(notifications);
+    } catch (error) {
+        console.error("Errore recupero notifiche POS:", error);
+        res.status(500).json({ error: "Errore recupero notifiche POS" });
+    }
+});
+
+app.delete("/notifications/pos", async (req, res) => {
+    try {
+        await deleteNotificationsByRole("POS");
+        res.sendStatus(204);
+    } catch (error) {
+        console.error("Errore cancellazione notifiche POS:", error);
+        res.status(500).json({ error: "Errore cancellazione notifiche POS" });
+    }
+});
+
 function getTargetRoleFromRoutingKey(routingKey) {
     if (routingKey === PROCUREMENT_ROUTING_KEY) {
         return "INVENTORY";
