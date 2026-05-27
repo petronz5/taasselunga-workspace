@@ -7,7 +7,6 @@ interface PurchaseOrder {
     id: number;
     orderNumber: string;
     orderDate: string;
-    supplierName: string;
     productName: string;
     totalAmount: number;
     status: string;
@@ -160,7 +159,9 @@ export default function OrdersPage() {
 
                             <tbody className="text-sm">
                             {orders.map((order) => {
-                                const product = products[order.productName.toLowerCase()];
+                                const product = order.productName
+                                    ? products[order.productName.toLowerCase()]
+                                    : undefined;
 
                                 return (
                                     <tr

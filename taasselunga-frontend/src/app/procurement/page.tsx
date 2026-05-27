@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { FileText, Package, Send } from "lucide-react";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 interface Product {
     id: number;
     name: string;
@@ -36,7 +38,7 @@ export default function DashboardPage() {
         try {
             setIsLoading(true);
 
-            const response = await fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
+            const response = await fetch(`${API_BASE_URL}/api/inventory/products?page=0&size=50`, {
                 headers: getAuthHeaders(),
             });
 
@@ -92,7 +94,7 @@ export default function DashboardPage() {
         try {
             setIsSubmittingOrderId(product.id);
 
-            const response = await fetch("http://localhost:8080/api/procurement/orders", {
+            const response = await fetch(`${API_BASE_URL}/api/procurement/orders`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -100,7 +102,6 @@ export default function DashboardPage() {
                 },
                 body: JSON.stringify({
                     orderNumber: `ORD-${Date.now()}`,
-                    supplierName: "Fornitore da assegnare",
                     totalAmount,
                     status: "CREATO",
                     productId: product.id,

@@ -13,6 +13,8 @@ import Barcode from "react-barcode";
 import BarcodeScanner from "../../../components/BarcodeScanner";
 import Paginator from "../../../components/Paginator";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
 type Product = {
     id: number;
     name: string;
@@ -33,6 +35,8 @@ export default function ProcurementProductsPage() {
     const [showForm, setShowForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
+    const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -175,10 +179,10 @@ export default function ProcurementProductsPage() {
             setSelectedFile(null);
             setShowForm(false);
 
-            alert("Prodotto creato con successo");
+            setModal({ isOpen: true, title: "Prodotto Creato", message: "Il prodotto è stato inserito con successo nel catalogo", type: "success" });
         } catch (error) {
             console.error(error);
-            alert("Errore durante la creazione del prodotto");
+            setModal({ isOpen: true, title: "Errore Creazione", message: "Impossibile creare il prodotto, riprova più tardi", type: "error" });
         }
     }
 
@@ -197,7 +201,6 @@ export default function ProcurementProductsPage() {
                     },
                     body: JSON.stringify({
                         orderNumber: `ORD-${Date.now()}`,
-                        supplierName: "Fornitore da assegnare",
                         totalAmount: quantity * product.price,
                         status: "CREATO",
                         productId: product.id,
@@ -215,7 +218,7 @@ export default function ProcurementProductsPage() {
             alert(`Ordine creato per ${product.name}`);
         } catch (error) {
             console.error(error);
-            alert("Errore creazione ordine");
+            setModal({ isOpen: true, title: "Errore Ordine", message: "Si è verificato un errore durante l'invio dell'ordine", type: "error" });
         }
     }
 

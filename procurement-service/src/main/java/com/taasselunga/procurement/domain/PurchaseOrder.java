@@ -18,7 +18,6 @@ public class PurchaseOrder {
 
     private String orderNumber;
     private LocalDateTime orderDate;
-    private String supplierName;
     private Double totalAmount;
     private String status;
 
@@ -30,13 +29,11 @@ public class PurchaseOrder {
 
     public PurchaseOrder(
             String orderNumber,
-            String supplierName,
             Double totalAmount,
             String status
     ) {
         this.orderNumber = orderNumber;
         this.orderDate = LocalDateTime.now();
-        this.supplierName = supplierName;
         this.totalAmount = totalAmount;
         this.status = status;
     }

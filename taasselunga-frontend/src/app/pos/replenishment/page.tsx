@@ -42,7 +42,9 @@ export default function PosReplenishmentPage() {
 
     function formatDate(dateString: string) {
         try {
-            return new Date(dateString).toLocaleString("it-IT");
+            return new Date(dateString).toLocaleString("it-IT", {
+                timeZone: "Europe/Rome",
+            });
         } catch {
             return dateString;
         }

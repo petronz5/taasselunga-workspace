@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Package, Search } from "lucide-react";
+import Paginator from "../../../components/Paginator";
 
 interface Product {
     id: number;
@@ -18,6 +19,8 @@ export default function InventoryProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     useEffect(() => {
         fetchProducts();

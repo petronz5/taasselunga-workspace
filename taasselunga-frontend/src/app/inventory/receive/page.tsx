@@ -17,7 +17,6 @@ interface Product {
 interface IncomingOrder {
     id: number;
     orderNumber: string;
-    supplierName: string;
     totalAmount: number;
     status: string;
     orderDate: string;

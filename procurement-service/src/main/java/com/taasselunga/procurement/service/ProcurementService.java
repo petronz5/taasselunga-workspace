@@ -34,9 +34,8 @@ public class ProcurementService {
 
         PurchaseOrder savedOrder = purchaseOrderRepository.save(order);
 
-        String message = "Nuovo ordine procurement creato: " + savedOrder.getOrderNumber() +
-                " - Fornitore: " + savedOrder.getSupplierName() +
-                " - Importo: " + savedOrder.getTotalAmount();
+        String message = "Nuovo ordine creato: " + savedOrder.getOrderNumber() +
+                " - Importo: " + String.format("%.2f", savedOrder.getTotalAmount());
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_NAME,

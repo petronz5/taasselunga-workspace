@@ -90,10 +90,10 @@ export default function InventoryMovementsPage() {
 
             const normalizedRequests: MovementRequest[] = rawRequests.map(
                 (request, index) => ({
-                    id: request.id ?? index,
+                    id: request.id ?? request.requestId ?? index,
                     storeId: request.storeId ?? request.store?.id ?? 0,
                     productId: request.productId ?? request.product?.id ?? 0,
-                    quantity: request.quantity ?? 0,
+                    quantity: request.requestedQuantity ?? request.quantity ?? 0,
                     status: normalizeStatus(request.status),
                     createdAt:
                         request.createdAt ??
@@ -183,8 +183,7 @@ export default function InventoryMovementsPage() {
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
                                                     <p className="text-lg font-black text-slate-900">
-                                                        {product?.name ||
-                                                            "Prodotto"}
+                                                        {product?.name || "Prodotto"}
                                                     </p>
 
                                                     <p className="text-sm text-slate-600 mt-1">
@@ -219,8 +218,12 @@ export default function InventoryMovementsPage() {
 
                                                     <p className="text-sm font-black text-slate-900">
                                                         {new Date(
-                                                            request.createdAt
-                                                        ).toLocaleString("it-IT")}
+                                                            request.createdAt.endsWith("Z")
+                                                                ? request.createdAt
+                                                                : request.createdAt + "Z"
+                                                        ).toLocaleString("it-IT", {
+                                                            timeZone: "Europe/Rome",
+                                                        })}
                                                     </p>
                                                 </div>
                                             </div>

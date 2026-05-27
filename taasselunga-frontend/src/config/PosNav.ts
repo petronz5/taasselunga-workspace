@@ -1,7 +1,6 @@
 import {
     LayoutDashboard,
     Package,
-    ShoppingCart,
     ClipboardList,
     Bell,
 } from "lucide-react";
@@ -16,11 +15,6 @@ export const posNav = [
         name: "Prodotti",
         href: "/pos/products",
         icon: Package,
-    },
-    {
-        name: "Sale",
-        href: "/pos/sales",
-        icon: ShoppingCart,
     },
     {
         name: "Richieste di Rifornimento",
