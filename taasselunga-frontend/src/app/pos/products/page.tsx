@@ -30,6 +30,8 @@ export default function PosProductsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [submittingProductId, setSubmittingProductId] = useState<number | null>(null);
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
+    const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
     function getAuthHeaders() {
         const token = localStorage.getItem("access_token");
@@ -144,14 +146,12 @@ export default function PosProductsPage() {
         const quantity = quantities[product.id] ?? 1;
 
         if (quantity <= 0) {
-            alert("Inserisci una quantità valida.");
+            setModal({ isOpen: true, title: "Quantità Non Valida", message: "Fissa una quantità maggiore di zero per procedere", type: "info" });
             return;
         }
 
         if (quantity > product.stockQuantity) {
-            alert(
-                `Quantità non disponibile. Disponibilità massima magazzino centrale: ${product.stockQuantity}`
-            );
+            setModal({ isOpen: true, title: "Giacenza Insufficiente", message: `La quantità inserita supera la disponibilità del magazzino centrale (${product.stockQuantity})`, type: "error" });
             return;
         }
 
@@ -173,10 +173,10 @@ export default function PosProductsPage() {
 
             await sendPosNotification(product.name);
 
-            alert(`Richiesta inviata per ${product.name}`);
+            setModal({ isOpen: true, title: "Richiesta Inviata", message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`, type: "success" });
         } catch (error) {
             console.error("Errore invio richiesta rifornimento:", error);
-            alert("Errore durante l'invio della richiesta");
+            setModal({ isOpen: true, title: "Errore di Invio", message: "Si è verificato un problema durante la trasmissione della richiesta", type: "error" });
         } finally {
             setSubmittingProductId(null);
         }

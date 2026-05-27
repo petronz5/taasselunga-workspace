@@ -1,5 +1,6 @@
 "use client";
 
+import AlertModal from "../../components/AlertModal";
 import React, { useEffect, useMemo, useState } from "react";
 import {
     AlertTriangle,
@@ -33,12 +34,16 @@ interface IncomingOrder {
     unitPrice?: number;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
 export default function InventoryPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [incomingOrders, setIncomingOrders] = useState<IncomingOrder[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [loadingOrders, setLoadingOrders] = useState(true);
     const [notifyingProductId, setNotifyingProductId] = useState<number | null>(null);
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
+    const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
     useEffect(() => {
         fetchProducts();
@@ -57,7 +62,7 @@ export default function InventoryPage() {
         try {
             setLoadingProducts(true);
 
-            const response = await fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
+            const response = await fetch(`${API_BASE_URL}/api/inventory/products?page=0&size=50`, {
                 headers: getAuthHeaders(),
             });
 
@@ -86,7 +91,7 @@ export default function InventoryPage() {
         try {
             setLoadingOrders(true);
 
-            const response = await fetch("http://localhost:8080/api/procurement/orders", {
+            const response = await fetch(`${API_BASE_URL}/api/procurement/orders`, {
                 headers: getAuthHeaders(),
             });
 
@@ -139,7 +144,7 @@ export default function InventoryPage() {
         try {
             setNotifyingProductId(product.id);
 
-            const response = await fetch("http://localhost:8080/api/notifications", {
+            const response = await fetch(`${API_BASE_URL}/api/notifications`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -156,10 +161,20 @@ export default function InventoryPage() {
                 throw new Error("Errore invio notifica");
             }
 
-            alert(`Operazione di sollecitazione per ${product.name} inoltrata con successo`);
+            setModal({
+                isOpen: true,
+                title: "Sollecito Inviato",
+                message: `Operazione di sollecitazione per ${product.name} inoltrata con successo`,
+                type: "success"
+            });
         } catch (error) {
             console.error("Errore invio notifica:", error);
-            alert("Errore durante l'invio della notifica");
+            setModal({
+                isOpen: true,
+                title: "Errore",
+                message: "Errore durante l'invio della notifica",
+                type: "error"
+            });
         } finally {
             setNotifyingProductId(null);
         }
@@ -167,6 +182,7 @@ export default function InventoryPage() {
 
     return (
         <div className="space-y-6">
+            <AlertModal isOpen={modal.isOpen} onClose={closeModal} title={modal.title} message={modal.message} type={modal.type} />
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
                     Benvenuto Antonio
