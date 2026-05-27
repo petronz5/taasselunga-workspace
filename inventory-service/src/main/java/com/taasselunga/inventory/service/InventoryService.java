@@ -1,5 +1,10 @@
 package com.taasselunga.inventory.service;
 
+
+
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.Base64;
 import com.taasselunga.inventory.config.RabbitMQConfig;
 import com.taasselunga.inventory.domain.Product;
 import com.taasselunga.inventory.domain.Quantity;
@@ -33,6 +38,10 @@ public class InventoryService {
             Stock stock = stockRepository.findByProductId(product.getId()).orElse(null);
             Integer qty = (stock != null) ? stock.getAvailableQuantity().getValue() : 0;
             Integer threshold = (stock != null) ? stock.getThreshold().getMinimumLevel() : 0;
+            String imageBase64 = product.getImage() != null
+                    ? Base64.getEncoder().encodeToString(product.getImage())
+                    : null;
+
             return new ProductResponseDTO(
                     product.getId(),
                     product.getName(),
@@ -40,7 +49,7 @@ public class InventoryService {
                     qty,
                     threshold,
                     product.getPrice(),
-                    product.getImageUrl(),
+                    imageBase64,
                     product.getBarcode()
             );
         });
@@ -67,16 +76,37 @@ public class InventoryService {
     }
 
     @Transactional
-    public void addProduct(ProductRequestDTO request) {
+    public void addProduct(
+            String name,
+            String category,
+            Double price,
+            String barcode,
+            Integer initialStock,
+            Integer threshold,
+            MultipartFile image
+    ) {
+        try {
+            Product product = new Product(
+                    name,
+                    category,
+                    price,
+                    image.getBytes(),
+                    barcode
+            );
 
-        Product product = new Product(request.name(), request.category(), request.price(), request.imageUrl(), request.barcode());
-        product = productRepository.save(product);
+            product = productRepository.save(product);
 
-        // 2. Salva lo stock iniziale collegato
-        Stock stock = new Stock(product.getId(), new Quantity(request.initialStock()), new StockThreshold(request.threshold()));
-        stockRepository.save(stock);
+            Stock stock = new Stock(
+                    product.getId(),
+                    new Quantity(initialStock),
+                    new StockThreshold(threshold)
+            );
 
-        System.out.println("Nuovo prodotto creato: " + product.getName());
+            stockRepository.save(stock);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Errore nella lettura dell'immagine", e);
+        }
     }
 
     @Transactional

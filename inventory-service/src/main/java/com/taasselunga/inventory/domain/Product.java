@@ -8,22 +8,35 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
+
     private String category;
+
     private Double price;
-    private String imageUrl;
+
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "image", columnDefinition = "BYTEA")
+    private byte[] image; //per foto in dataabse
+
     @Column(unique = true)
     private String barcode;
 
-    public Product(String name, String category, Double price, String imageUrl, String barcode) {
+    public Product(
+            String name,
+            String category,
+            Double price,
+            byte[] image,
+            String barcode
+    ) {
         this.name = name;
         this.category = category;
         this.price = price;
-        this.imageUrl = imageUrl;
+        this.image = image;
         this.barcode = barcode;
     }
 }

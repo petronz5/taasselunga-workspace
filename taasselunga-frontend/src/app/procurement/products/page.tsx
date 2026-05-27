@@ -9,6 +9,7 @@ import {
     X,
 } from "lucide-react";
 
+import Barcode from "react-barcode";
 import BarcodeScanner from "../../../components/BarcodeScanner";
 import Paginator from "../../../components/Paginator";
 
@@ -19,7 +20,7 @@ type Product = {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
     barcode?: string;
 };
 
@@ -33,16 +34,17 @@ export default function ProcurementProductsPage() {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [orderQuantities, setOrderQuantities] = useState<
-        Record<number, number>
-    >({});
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+    const [orderQuantities, setOrderQuantities] = useState<Record<number, number>>({});
 
     const [formData, setFormData] = useState({
         name: "",
         category: "",
         price: "",
-        imageUrl: "",
         barcode: "",
+        initialStock: "0",
+        threshold: "5",
     });
 
     useEffect(() => {
@@ -56,25 +58,35 @@ export default function ProcurementProductsPage() {
 
             const response = await fetch(
                 `http://localhost:8080/api/inventory/products?page=${page}&size=9`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
 
-            if (!response.ok) throw new Error("Errore caricamento prodotti");
+            if (!response.ok) {
+                throw new Error("Errore caricamento prodotti");
+            }
 
             const data = await response.json();
 
-            setProducts(data.content);       // ← era: setProducts(data)
-            setTotalPages(data.totalPages);
-            setCurrentPage(data.number);
+            setProducts(data.content ?? []);
+            setTotalPages(data.totalPages ?? 0);
+            setCurrentPage(data.number ?? 0);
 
-            const initialQuantities = data.content.reduce(  // ← era: data.reduce
+            const initialQuantities = (data.content ?? []).reduce(
                 (acc: Record<number, number>, product: Product) => {
                     acc[product.id] = Math.max(
-                        product.reorderThreshold - product.stockQuantity, 1
+                        product.reorderThreshold - product.stockQuantity,
+                        1
                     );
+
                     return acc;
-                }, {}
+                },
+                {}
             );
+
             setOrderQuantities(initialQuantities);
         } catch (error) {
             console.error(error);
@@ -86,9 +98,7 @@ export default function ProcurementProductsPage() {
 
     const filteredProducts = useMemo(() => {
         return products.filter((product) =>
-            `${product.name} ${product.category} ${
-                product.barcode ?? ""
-            }`
+            `${product.name} ${product.category} ${product.barcode ?? ""}`
                 .toLowerCase()
                 .includes(search.toLowerCase())
         );
@@ -101,9 +111,7 @@ export default function ProcurementProductsPage() {
         }));
     }
 
-    function handleInputChange(
-        e: React.ChangeEvent<HTMLInputElement>
-    ) {
+    function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value,
@@ -119,26 +127,33 @@ export default function ProcurementProductsPage() {
         setIsScanning(false);
     }
 
-    async function handleCreateProduct(
-        e: React.FormEvent
-    ) {
+    async function handleCreateProduct(e: React.FormEvent) {
         e.preventDefault();
 
         try {
             const token = localStorage.getItem("access_token");
+
+            const multipartData = new FormData();
+
+            multipartData.append("name", formData.name);
+            multipartData.append("category", formData.category);
+            multipartData.append("price", formData.price);
+            multipartData.append("barcode", formData.barcode);
+            multipartData.append("initialStock", formData.initialStock);
+            multipartData.append("threshold", formData.threshold);
+
+            if (selectedFile) {
+                multipartData.append("image", selectedFile);
+            }
 
             const response = await fetch(
                 "http://localhost:8080/api/inventory/products",
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({
-                        ...formData,
-                        price: parseFloat(formData.price),
-                    }),
+                    body: multipartData,
                 }
             );
 
@@ -152,10 +167,12 @@ export default function ProcurementProductsPage() {
                 name: "",
                 category: "",
                 price: "",
-                imageUrl: "",
                 barcode: "",
+                initialStock: "0",
+                threshold: "5",
             });
 
+            setSelectedFile(null);
             setShowForm(false);
 
             alert("Prodotto creato con successo");
@@ -168,25 +185,20 @@ export default function ProcurementProductsPage() {
     async function createOrder(product: Product) {
         try {
             const token = localStorage.getItem("access_token");
-
-            const quantity =
-                orderQuantities[product.id] ?? 1;
+            const quantity = orderQuantities[product.id] ?? 1;
 
             const response = await fetch(
                 "http://localhost:8080/api/procurement/orders",
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type":
-                            "application/json",
+                        "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
                         orderNumber: `ORD-${Date.now()}`,
-                        supplierName:
-                            "Fornitore da assegnare",
-                        totalAmount:
-                            quantity * product.price,
+                        supplierName: "Fornitore da assegnare",
+                        totalAmount: quantity * product.price,
                         status: "CREATO",
                         productId: product.id,
                         productName: product.name,
@@ -200,9 +212,7 @@ export default function ProcurementProductsPage() {
                 throw new Error("Errore creazione ordine");
             }
 
-            alert(
-                `Ordine creato per ${product.name}`
-            );
+            alert(`Ordine creato per ${product.name}`);
         } catch (error) {
             console.error(error);
             alert("Errore creazione ordine");
@@ -225,8 +235,7 @@ export default function ProcurementProductsPage() {
                     </h1>
 
                     <p className="text-gray-500 mt-1 font-medium">
-                        Gestione completa catalogo
-                        prodotti.
+                        Gestione completa catalogo prodotti.
                     </p>
                 </div>
 
@@ -236,18 +245,14 @@ export default function ProcurementProductsPage() {
 
                         <input
                             value={search}
-                            onChange={(e) =>
-                                setSearch(e.target.value)
-                            }
+                            onChange={(e) => setSearch(e.target.value)}
                             placeholder="Cerca prodotto..."
                             className="w-full border border-gray-200 rounded-2xl pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-200 bg-white"
                         />
                     </div>
 
                     <button
-                        onClick={() =>
-                            setShowForm(!showForm)
-                        }
+                        onClick={() => setShowForm(!showForm)}
                         className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-black hover:bg-blue-700 transition inline-flex items-center gap-2 whitespace-nowrap"
                     >
                         {showForm ? (
@@ -256,9 +261,7 @@ export default function ProcurementProductsPage() {
                             <Plus className="w-5 h-5" />
                         )}
 
-                        {showForm
-                            ? "Chiudi"
-                            : "Nuovo prodotto"}
+                        {showForm ? "Chiudi" : "Nuovo prodotto"}
                     </button>
                 </div>
             </div>
@@ -305,12 +308,34 @@ export default function ProcurementProductsPage() {
                         />
 
                         <input
-                            type="text"
-                            name="imageUrl"
-                            value={formData.imageUrl}
-                            onChange={handleInputChange}
-                            placeholder="URL immagine"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    setSelectedFile(e.target.files[0]);
+                                }
+                            }}
                             className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                        />
+
+                        <input
+                            type="number"
+                            name="initialStock"
+                            value={formData.initialStock}
+                            onChange={handleInputChange}
+                            placeholder="Giacenza iniziale"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                            required
+                        />
+
+                        <input
+                            type="number"
+                            name="threshold"
+                            value={formData.threshold}
+                            onChange={handleInputChange}
+                            placeholder="Soglia minima"
+                            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
+                            required
                         />
 
                         <div className="md:col-span-2 flex gap-3">
@@ -318,9 +343,7 @@ export default function ProcurementProductsPage() {
                                 type="text"
                                 name="barcode"
                                 value={formData.barcode}
-                                onChange={
-                                    handleInputChange
-                                }
+                                onChange={handleInputChange}
                                 placeholder="Barcode"
                                 className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200"
                                 required
@@ -328,9 +351,7 @@ export default function ProcurementProductsPage() {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setIsScanning(true)
-                                }
+                                onClick={() => setIsScanning(true)}
                                 className="bg-gray-900 text-white px-5 py-3 rounded-2xl font-bold hover:bg-black transition whitespace-nowrap"
                             >
                                 Usa Scanner
@@ -357,16 +378,10 @@ export default function ProcurementProductsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => {
                         const isLowStock =
-                            product.stockQuantity <
-                            product.reorderThreshold;
+                            product.stockQuantity < product.reorderThreshold;
 
-                        const quantity =
-                            orderQuantities[
-                                product.id
-                                ] ?? 1;
-
-                        const totalAmount =
-                            quantity * product.price;
+                        const quantity = orderQuantities[product.id] ?? 1;
+                        const totalAmount = quantity * product.price;
 
                         return (
                             <div
@@ -374,12 +389,10 @@ export default function ProcurementProductsPage() {
                                 className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition"
                             >
                                 <div className="h-60 bg-gray-50 border-b border-gray-100 flex items-center justify-center p-6">
-                                    {product.imageUrl ? (
+                                    {product.imageBase64 ? (
                                         <img
-                                            src={`/products/${product.imageUrl}`}
-                                            alt={
-                                                product.name
-                                            }
+                                            src={`data:image/jpeg;base64,${product.imageBase64}`}
+                                            alt={product.name}
                                             className="w-full h-full object-contain"
                                         />
                                     ) : (
@@ -395,19 +408,17 @@ export default function ProcurementProductsPage() {
                                             </h2>
 
                                             <p className="text-gray-500 font-medium">
-                                                {
-                                                    product.category
-                                                }
+                                                {product.category}
                                             </p>
                                         </div>
 
                                         {isLowStock ? (
                                             <span className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
-                                                    Sotto soglia
+                                                Sotto soglia
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
-                                            Disponibile
+                                                Disponibile
                                             </span>
                                         )}
                                     </div>
@@ -419,9 +430,7 @@ export default function ProcurementProductsPage() {
                                             </p>
 
                                             <p className="text-2xl font-black text-gray-900">
-                                                {
-                                                    product.stockQuantity
-                                                }
+                                                {product.stockQuantity}
                                             </p>
                                         </div>
 
@@ -431,9 +440,7 @@ export default function ProcurementProductsPage() {
                                             </p>
 
                                             <p className="text-2xl font-black text-gray-900">
-                                                {
-                                                    product.reorderThreshold
-                                                }
+                                                {product.reorderThreshold}
                                             </p>
                                         </div>
 
@@ -443,24 +450,31 @@ export default function ProcurementProductsPage() {
                                             </p>
 
                                             <p className="text-xl font-black text-blue-700">
-                                                €
-                                                {Number(
-                                                    product.price
-                                                ).toFixed(
-                                                    2
-                                                )}
+                                                €{Number(product.price).toFixed(2)}
                                             </p>
                                         </div>
 
                                         <div className="bg-gray-50 rounded-2xl p-4">
-                                            <p className="text-xs text-gray-500 font-bold">
+                                            <p className="text-xs text-gray-500 font-bold mb-2">
                                                 Barcode
                                             </p>
 
-                                            <p className="text-xs font-mono text-gray-700 truncate">
-                                                {product.barcode ||
-                                                    "N/A"}
-                                            </p>
+                                            {product.barcode ? (
+                                                <div className="overflow-hidden">
+                                                    <Barcode
+                                                        value={product.barcode}
+                                                        height={35}
+                                                        width={1.2}
+                                                        fontSize={10}
+                                                        margin={0}
+                                                        displayValue={true}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs font-mono text-gray-700">
+                                                    N/A
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
@@ -473,16 +487,10 @@ export default function ProcurementProductsPage() {
                                             type="number"
                                             min="1"
                                             value={quantity}
-                                            onChange={(
-                                                e
-                                            ) =>
+                                            onChange={(e) =>
                                                 updateQuantity(
                                                     product.id,
-                                                    Number(
-                                                        e
-                                                            .target
-                                                            .value
-                                                    )
+                                                    Number(e.target.value)
                                                 )
                                             }
                                             className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-center text-2xl font-black outline-none focus:ring-2 focus:ring-blue-200"
@@ -494,19 +502,12 @@ export default function ProcurementProductsPage() {
                                             </p>
 
                                             <p className="text-2xl font-black text-blue-700">
-                                                €
-                                                {totalAmount.toFixed(
-                                                    2
-                                                )}
+                                                €{totalAmount.toFixed(2)}
                                             </p>
                                         </div>
 
                                         <button
-                                            onClick={() =>
-                                                createOrder(
-                                                    product
-                                                )
-                                            }
+                                            onClick={() => createOrder(product)}
                                             className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition inline-flex items-center justify-center gap-2"
                                         >
                                             <ShoppingCart className="w-5 h-5" />
@@ -519,6 +520,7 @@ export default function ProcurementProductsPage() {
                     })}
                 </div>
             )}
+
             <Paginator
                 currentPage={currentPage}
                 totalPages={totalPages}

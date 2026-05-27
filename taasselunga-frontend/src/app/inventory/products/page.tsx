@@ -10,7 +10,7 @@ interface Product {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
     barcode?: string;
 }
 
@@ -138,9 +138,9 @@ export default function InventoryProductsPage() {
                                         <td className="py-4 pr-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                                                    {product.imageUrl ? (
+                                                    {product.imageBase64 ? (
                                                         <img
-                                                            src={`/products/${product.imageUrl}`}
+                                                            src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                             alt={product.name}
                                                             className="w-full h-full object-contain p-2"
                                                         />
@@ -182,12 +182,12 @@ export default function InventoryProductsPage() {
                                         <td className="py-4">
                                             {isLow ? (
                                                 <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black">
-                                                        Sotto soglia
-                                                    </span>
+                                                    Sotto soglia
+                                                </span>
                                             ) : (
                                                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black">
-                                                        Disponibile
-                                                    </span>
+                                                    Disponibile
+                                                </span>
                                             )}
                                         </td>
                                     </tr>

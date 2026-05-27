@@ -15,7 +15,7 @@ interface Product {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
 }
 
 interface PosRequest {
@@ -228,9 +228,9 @@ export default function PosRequestsPage() {
                                 >
                                     <div className="flex items-start gap-5">
                                         <div className="w-24 h-24 bg-white border border-blue-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0">
-                                            {product?.imageUrl ? (
+                                            {product?.imageBase64 ? (
                                                 <img
-                                                    src={`/products/${product.imageUrl}`}
+                                                    src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain p-3"
                                                 />

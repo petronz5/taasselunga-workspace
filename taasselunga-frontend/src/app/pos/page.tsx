@@ -10,7 +10,7 @@ interface Product {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
     barcode?: string;
 }
 
@@ -257,7 +257,7 @@ export default function PosDashboardPage() {
                             Prodotti da rifornire
                         </h2>
 
-                        <span className="bg-orange-100 text-orange-700 text-xs font-black px-3 py-1 rounded-full">
+                        <span className="bg-slate-100 text-slate-700 text-xs font-black px-3 py-1 rounded-full">
                             {lowStockProducts.length} prodotti
                         </span>
                     </div>
@@ -267,56 +267,81 @@ export default function PosDashboardPage() {
                             Caricamento prodotti...
                         </p>
                     ) : lowStockProducts.length === 0 ? (
-                        <div className="bg-orange-100 border text-orange-700 rounded-2xl p-8 text-center">
-                            <p className="font-black text-orange-700">
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-8 text-center">
+                            <p className="font-black text-slate-700">
                                 Nessun prodotto da riordinare
                             </p>
 
-                            <p className="text-sm text-orange-700 mt-1">
+                            <p className="text-sm text-slate-500 mt-1">
                                 Tutti i prodotti del punto vendita sono sopra la soglia minima.
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {lowStockProducts.map((product) => (
                                 <div
                                     key={product.id}
-                                    className="border border-orange-100 bg-orange-50 rounded-2xl p-4 flex items-center gap-4"
+                                    className="border border-slate-200 bg-white rounded-2xl p-4 flex items-center gap-4 hover:bg-slate-50 transition"
                                 >
-                                    <div className="w-16 h-16 bg-white border border-orange-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                                        {product.imageUrl ? (
+                                    <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                                        {product.imageBase64 ? (
                                             <img
-                                                src={`/products/${product.imageUrl}`}
+                                                src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                 alt={product.name}
                                                 className="w-full h-full object-contain p-2"
                                             />
                                         ) : (
-                                            <Package className="w-7 h-7 text-orange-500" />
+                                            <Package className="w-7 h-7 text-slate-400" />
                                         )}
                                     </div>
 
-                                    <div className="flex-1">
-                                        <p className="font-black text-slate-900">
-                                            {product.name}
-                                        </p>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p className="font-black text-slate-900 truncate">
+                                                    {product.name}
+                                                </p>
 
-                                        <p className="text-xs text-slate-500 font-medium">
-                                            {product.category}
-                                        </p>
+                                                <p className="text-xs text-slate-500 font-medium">
+                                                    {product.category}
+                                                </p>
+                                            </div>
 
-                                        <div className="flex flex-wrap gap-4 mt-2 text-sm">
-                                            <span className="font-bold text-red-600">
-                                                Giacenza negozio: {product.storeQuantity}
+                                            <span className="bg-orange-100 text-orange-700 text-xs font-black px-3 py-1 rounded-full shrink-0">
+                                                Sotto soglia
                                             </span>
+                                        </div>
 
-                                            <span className="text-slate-500">
-                                                Soglia minima: {product.storeMinimumLevel}
-                                            </span>
+                                        <div className="mt-3 space-y-2 text-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex-1 bg-orange-50 border border-orange-100 rounded-xl p-3">
+                                                    <p className="text-xs text-orange-700 font-bold">
+                                                        Giacenza negozio
+                                                    </p>
+                                                    <p className="font-black text-orange-700">
+                                                        {product.storeQuantity}
+                                                    </p>
+                                                </div>
 
-                                            <span className="inline-flex items-center gap-1 font-bold text-blue-700">
-                                                <Warehouse className="w-4 h-4" />
-                                                Magazzino centrale: {product.stockQuantity}
-                                            </span>
+                                                <div className="flex-1 bg-orange-50 border border-orange-100 rounded-xl p-3">
+                                                    <p className="text-xs text-orange-700 font-bold">
+                                                        Soglia minima
+                                                    </p>
+                                                    <p className="font-black text-orange-700">
+                                                        {product.storeMinimumLevel}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                                                <p className="text-xs text-slate-500 font-bold">
+                                                    Magazzino centrale
+                                                </p>
+                                                <p className="font-black text-blue-700 inline-flex items-center gap-1">
+                                                    <Warehouse className="w-4 h-4" />
+                                                    {product.stockQuantity}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -331,7 +356,7 @@ export default function PosDashboardPage() {
                             Bozze richieste di rifornimento
                         </h2>
 
-                        <span className="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">
+                        <span className="bg-slate-100 text-slate-700 text-xs font-black px-3 py-1 rounded-full">
                             {draftProducts.length} da inviare
                         </span>
                     </div>
@@ -354,7 +379,7 @@ export default function PosDashboardPage() {
                             </p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {draftProducts.map((product) => {
                                 const quantity = draftQuantities[product.id] ?? 1;
                                 const isSubmitting = submittingProductId === product.id;
@@ -363,36 +388,54 @@ export default function PosDashboardPage() {
                                 return (
                                     <div
                                         key={product.id}
-                                        className="border border-blue-100 bg-blue-50 rounded-2xl p-5"
+                                        className="border border-slate-200 bg-white rounded-2xl p-4 hover:bg-slate-50 transition"
                                     >
                                         <div className="flex items-start gap-4">
-                                            <div className="w-16 h-16 bg-white border border-blue-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                                                {product.imageUrl ? (
+                                            <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+                                                {product.imageBase64 ? (
                                                     <img
-                                                        src={`/products/${product.imageUrl}`}
+                                                        src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                         alt={product.name}
                                                         className="w-full h-full object-contain p-2"
                                                     />
                                                 ) : (
-                                                    <Package className="w-7 h-7 text-blue-500" />
+                                                    <Package className="w-7 h-7 text-slate-400" />
                                                 )}
                                             </div>
 
-                                            <div className="flex-1">
-                                                <p className="font-black text-slate-900">
-                                                    Bozza suggerita - {product.name}
-                                                </p>
+                                            <div className="flex-1 min-w-0">
 
-                                                <p className="text-sm text-slate-500 mt-1">
-                                                    Giacenza negozio: {product.storeQuantity} / Soglia minima: {product.storeMinimumLevel}
-                                                </p>
+                                                <div className="flex items-start justify-between gap-3">
 
-                                                <p className="text-sm text-blue-700 font-bold mt-1 inline-flex items-center gap-1">
-                                                    <Warehouse className="w-4 h-4" />
-                                                    Disponibilità magazzino centrale: {product.stockQuantity}
-                                                </p>
+                                                    <div>
+                                                        <p className="font-black text-slate-900">
+                                                            {product.name}
+                                                        </p>
+
+                                                        <p className="text-sm text-slate-500 mt-1">
+                                                            Giacenza negozio: {product.storeQuantity} / Soglia minima: {product.storeMinimumLevel}
+                                                        </p>
+                                                    </div>
+
+                                                    <span className="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full shrink-0">
+            Bozza
+        </span>
+
+                                                </div>
+
+                                                <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 mt-3">
+                                                    <p className="text-xs text-slate-500 font-bold">
+                                                        Magazzino centrale
+                                                    </p>
+
+                                                    <p className="font-black text-blue-700 inline-flex items-center gap-1">
+                                                        <Warehouse className="w-4 h-4" />
+                                                        {product.stockQuantity}
+                                                    </p>
+                                                </div>
 
                                                 <div className="mt-4 flex items-center justify-between gap-4">
+
                                                     <div>
                                                         <p className="text-xs text-slate-500 font-bold">
                                                             Quantità richiesta
@@ -412,7 +455,7 @@ export default function PosDashboardPage() {
                                                             className={`w-28 border rounded-xl px-3 py-2 text-xl font-black focus:outline-none focus:ring-2 ${
                                                                 isQuantityTooHigh
                                                                     ? "border-red-300 text-red-700 focus:ring-red-300"
-                                                                    : "border-blue-200 text-blue-700 focus:ring-blue-300"
+                                                                    : "border-slate-200 text-slate-900 focus:ring-blue-300"
                                                             }`}
                                                         />
 
@@ -434,6 +477,7 @@ export default function PosDashboardPage() {
                                                     >
                                                         {isSubmitting ? "Invio..." : "Invia richiesta"}
                                                     </button>
+
                                                 </div>
                                             </div>
                                         </div>

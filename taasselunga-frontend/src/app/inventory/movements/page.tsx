@@ -15,7 +15,7 @@ interface Product {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
 }
 
 interface MovementRequest {
@@ -134,14 +134,12 @@ export default function InventoryMovementsPage() {
                     Storico spedizioni movimenti verso i supermercati
                 </h1>
 
-
                 <p className="text-sm text-slate-500 font-medium">
                     Movimenti dei prodotti dal magazzino centrale verso i punti vendita.
                 </p>
             </div>
 
             <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-
                 {loading ? (
                     <p className="text-slate-500 font-semibold">
                         Caricamento movimenti...
@@ -170,9 +168,9 @@ export default function InventoryMovementsPage() {
                                 >
                                     <div className="flex items-start gap-5">
                                         <div className="w-24 h-24 bg-white border border-blue-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0">
-                                            {product?.imageUrl ? (
+                                            {product?.imageBase64 ? (
                                                 <img
-                                                    src={`/products/${product.imageUrl}`}
+                                                    src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain p-3"
                                                 />

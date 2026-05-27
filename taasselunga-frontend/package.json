@@ -13,6 +13,7 @@
     "lucide-react": "^1.16.0",
     "next": "latest",
     "react": "latest",
+    "react-barcode": "^1.6.1",
     "react-dom": "latest",
     "socket.io-client": "latest"
   },

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Package, ShoppingCart, Search, Warehouse } from "lucide-react";
+import Barcode from "react-barcode";
 
 interface StoreStock {
     productId: number;
@@ -15,7 +16,7 @@ interface Product {
     category: string;
     price: number;
     stockQuantity: number;
-    imageUrl?: string;
+    imageBase64?: string;
     barcode?: string;
 }
 
@@ -230,9 +231,9 @@ export default function PosProductsPage() {
                                 className="bg-white rounded-3xl border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col"
                             >
                                 <div className="h-64 bg-gray-50 flex items-center justify-center border-b border-gray-100">
-                                    {product.imageUrl ? (
+                                    {product.imageBase64 ? (
                                         <img
-                                            src={`/products/${product.imageUrl}`}
+                                            src={`data:image/jpeg;base64,${product.imageBase64}`}
                                             alt={product.name}
                                             className="w-full h-full object-contain p-8"
                                         />
@@ -292,18 +293,30 @@ export default function PosProductsPage() {
                                             </p>
                                         </div>
 
-                                        <div className="bg-gray-50 rounded-2xl p-4">
-                                            <p className="text-xs text-gray-500 font-bold mb-1">
+                                        <div className="bg-gray-50 rounded-2xl p-4 overflow-hidden">
+                                            <p className="text-xs text-gray-500 font-bold mb-2">
                                                 Barcode
                                             </p>
-                                            <p className="text-sm font-bold text-gray-700">
-                                                {product.barcode || "N/D"}
-                                            </p>
+
+                                            {product.barcode ? (
+                                                <Barcode
+                                                    value={product.barcode}
+                                                    height={35}
+                                                    width={1.2}
+                                                    fontSize={10}
+                                                    margin={0}
+                                                    displayValue={true}
+                                                />
+                                            ) : (
+                                                <p className="text-sm font-bold text-gray-700">
+                                                    N/D
+                                                </p>
+                                            )}
                                         </div>
 
                                         <div className="bg-gray-50 rounded-2xl p-4 col-span-2">
                                             <p className="text-xs text-gray-500 font-bold mb-1">
-                                                Prezzo
+                                                Prezzo unitario
                                             </p>
                                             <p className="text-2xl font-black text-blue-600">
                                                 €{product.price.toFixed(2)}

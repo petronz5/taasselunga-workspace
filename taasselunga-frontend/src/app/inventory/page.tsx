@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    AlertTriangle,
     ClipboardCheck,
     Package,
     Truck,
@@ -16,7 +15,7 @@ interface Product {
     stockQuantity: number;
     reorderThreshold: number;
     price: number;
-    imageUrl?: string;
+    imageBase64?: string;
     barcode?: string;
 }
 
@@ -66,7 +65,7 @@ export default function InventoryPage() {
             }
 
             const data = await response.json();
-            console.log("PRODUCTS RESPONSE:", data);
+
             setProducts(
                 Array.isArray(data)
                     ? data
@@ -114,10 +113,6 @@ export default function InventoryPage() {
         return products.filter(
             (product) => product.stockQuantity < product.reorderThreshold
         );
-    }, [products]);
-
-    const totalStockPieces = useMemo(() => {
-        return products.reduce((sum, product) => sum + product.stockQuantity, 0);
     }, [products]);
 
     function findProductForOrder(order: IncomingOrder) {
@@ -177,7 +172,6 @@ export default function InventoryPage() {
                 </p>
             </div>
 
-
             <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
                     <div className="flex items-center justify-between mb-5">
@@ -224,9 +218,9 @@ export default function InventoryPage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex items-start gap-4">
                                                 <div className="w-14 h-14 bg-white border border-orange-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                                                    {product.imageUrl ? (
+                                                    {product.imageBase64 ? (
                                                         <img
-                                                            src={`/products/${product.imageUrl}`}
+                                                            src={`data:image/jpeg;base64,${product.imageBase64}`}
                                                             alt={product.name}
                                                             className="w-full h-full object-contain p-2"
                                                         />
@@ -319,9 +313,9 @@ export default function InventoryPage() {
                                     >
                                         <div className="flex items-start gap-4">
                                             <div className="w-20 h-20 bg-white border border-blue-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0">
-                                                {orderedProduct?.imageUrl ? (
+                                                {orderedProduct?.imageBase64 ? (
                                                     <img
-                                                        src={`/products/${orderedProduct.imageUrl}`}
+                                                        src={`data:image/jpeg;base64,${orderedProduct.imageBase64}`}
                                                         alt={
                                                             order.productName ||
                                                             orderedProduct.name ||
@@ -356,42 +350,42 @@ export default function InventoryPage() {
                                                     </span>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
-                                                        <p className="text-xs text-slate-500 font-bold">
-                                                            Codice ordine
-                                                        </p>
-                                                        <p className="text-sm font-black text-slate-900 truncate">
-                                                            {order.orderNumber}
-                                                        </p>
+                                                <div className="bg-white border border-blue-100 rounded-xl p-4 mt-4">
+
+                                                    <p className="text-xs text-slate-500 font-bold">
+                                                        Codice ordine
+                                                    </p>
+
+                                                    <p className="text-base font-black text-slate-900 truncate mb-3">
+                                                        {order.orderNumber}
+                                                    </p>
+
+                                                    <div className="flex items-center justify-between gap-4">
+
+                                                        <div>
+                                                            <p className="text-xs text-slate-500 font-bold">
+                                                                Data ordine
+                                                            </p>
+
+                                                            <p className="text-sm font-black text-slate-900">
+                                                                {new Date(order.orderDate).toLocaleString("it-IT", {
+                                                                    timeZone: "Europe/Rome",
+                                                                })}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="text-right">
+                                                            <p className="text-xs text-slate-500 font-bold">
+                                                                Totale
+                                                            </p>
+
+                                                            <p className="text-sm font-black text-blue-700">
+                                                                €{Number(order.totalAmount).toFixed(2)}
+                                                            </p>
+                                                        </div>
+
                                                     </div>
 
-                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
-                                                        <p className="text-xs text-slate-500 font-bold">
-                                                            Fornitore
-                                                        </p>
-                                                        <p className="text-sm font-black text-slate-900 truncate">
-                                                            {order.supplierName}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
-                                                        <p className="text-xs text-slate-500 font-bold">
-                                                            Data ordine
-                                                        </p>
-                                                        <p className="text-sm font-black text-slate-900">
-                                                            {order.orderDate}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="bg-white border border-blue-100 rounded-xl p-3">
-                                                        <p className="text-xs text-slate-500 font-bold">
-                                                            Totale
-                                                        </p>
-                                                        <p className="text-sm font-black text-blue-700">
-                                                            €{Number(order.totalAmount).toFixed(2)}
-                                                        </p>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

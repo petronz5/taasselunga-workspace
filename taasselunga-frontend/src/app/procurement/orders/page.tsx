@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Package } from "lucide-react";
 
 interface PurchaseOrder {
     id: number;
@@ -13,8 +13,15 @@ interface PurchaseOrder {
     status: string;
 }
 
+interface Product {
+    id: number;
+    name: string;
+    imageBase64?: string;
+}
+
 export default function OrdersPage() {
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+    const [products, setProducts] = useState<Record<string, Product>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -22,29 +29,52 @@ export default function OrdersPage() {
         fetchOrders();
     }, []);
 
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem("access_token");
+
+        return {
+            Authorization: `Bearer ${token}`,
+        };
+    };
+
     const fetchOrders = async () => {
         try {
             setIsLoading(true);
             setError("");
 
-            const token = localStorage.getItem("access_token");
+            const [ordersResponse, productsResponse] = await Promise.all([
+                fetch("http://localhost:8080/api/procurement/orders", {
+                    headers: getAuthHeaders(),
+                }),
+                fetch("http://localhost:8080/api/inventory/products?page=0&size=50", {
+                    headers: getAuthHeaders(),
+                }),
+            ]);
 
-            const response = await fetch(
-                "http://localhost:8080/api/procurement/orders",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error(`Errore ${response.status} nel caricamento degli ordini`);
+            if (!ordersResponse.ok) {
+                throw new Error(`Errore ${ordersResponse.status} nel caricamento degli ordini`);
             }
 
-            const data: PurchaseOrder[] = await response.json();
+            if (!productsResponse.ok) {
+                throw new Error(`Errore ${productsResponse.status} nel caricamento dei prodotti`);
+            }
 
-            const sortedOrders = data.sort((a, b) => {
+            const ordersData: PurchaseOrder[] = await ordersResponse.json();
+            const productsData = await productsResponse.json();
+
+            const normalizedProducts: Product[] = Array.isArray(productsData)
+                ? productsData
+                : Array.isArray(productsData.content)
+                    ? productsData.content
+                    : [];
+
+            const productMap: Record<string, Product> = {};
+
+            normalizedProducts.forEach((product) => {
+                productMap[product.name.toLowerCase()] = product;
+            });
+
+            const sortedOrders = ordersData.sort((a, b) => {
                 const dateA = new Date(a.orderDate).getTime();
                 const dateB = new Date(b.orderDate).getTime();
 
@@ -55,6 +85,7 @@ export default function OrdersPage() {
                 return b.id - a.id;
             });
 
+            setProducts(productMap);
             setOrders(sortedOrders);
         } catch (error: any) {
             console.error("Errore nel caricamento ordini:", error);
@@ -118,50 +149,64 @@ export default function OrdersPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                             <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                                <th className="p-4 font-bold">Immagine</th>
                                 <th className="p-4 font-bold">N° Ordine</th>
                                 <th className="p-4 font-bold">Prodotto</th>
                                 <th className="p-4 font-bold">Data</th>
-                                <th className="p-4 font-bold">Fornitore</th>
                                 <th className="p-4 font-bold text-right">Totale (€)</th>
                                 <th className="p-4 font-bold text-center">Stato</th>
                             </tr>
                             </thead>
 
                             <tbody className="text-sm">
-                            {orders.map((order) => (
-                                <tr
-                                    key={order.id}
-                                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                                >
-                                    <td className="p-4 font-bold text-blue-900">
-                                        {order.orderNumber}
-                                    </td>
+                            {orders.map((order) => {
+                                const product = products[order.productName.toLowerCase()];
 
-                                    <td className="p-4 font-medium text-gray-800">
-                                        {order.productName}
-                                    </td>
+                                return (
+                                    <tr
+                                        key={order.id}
+                                        className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <td className="p-4">
+                                            <div className="w-14 h-14 bg-white border border-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                                                {product?.imageBase64 ? (
+                                                    <img
+                                                        src={`data:image/jpeg;base64,${product.imageBase64}`}
+                                                        alt={order.productName}
+                                                        className="w-full h-full object-contain p-2"
+                                                    />
+                                                ) : (
+                                                    <Package className="w-6 h-6 text-gray-400" />
+                                                )}
+                                            </div>
+                                        </td>
 
-                                    <td className="p-4 text-gray-600">
-                                        {order.orderDate}
-                                    </td>
+                                        <td className="p-4 font-bold text-blue-900">
+                                            {order.orderNumber}
+                                        </td>
 
-                                    <td className="p-4 font-medium text-gray-800">
-                                        {order.supplierName}
-                                    </td>
+                                        <td className="p-4 font-medium text-gray-800">
+                                            {order.productName}
+                                        </td>
 
-                                    <td className="p-4 text-right font-black text-gray-800">
-                                        €{order.totalAmount.toFixed(2)}
-                                    </td>
+                                        <td className="p-4 text-gray-600">
+                                            {order.orderDate}
+                                        </td>
 
-                                    <td className="p-4 text-center">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusClassName(order.status)}`}
-                                        >
-                                            {getStatusLabel(order.status)}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                                        <td className="p-4 text-right font-black text-gray-800">
+                                            €{order.totalAmount.toFixed(2)}
+                                        </td>
+
+                                        <td className="p-4 text-center">
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusClassName(order.status)}`}
+                                            >
+                                                {getStatusLabel(order.status)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>

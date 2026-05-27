@@ -1,5 +1,7 @@
 package com.taasselunga.inventory.controller;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import com.taasselunga.inventory.dto.ReplenishmentRequestDto;
 import com.taasselunga.inventory.dto.ProductResponseDTO;
 import com.taasselunga.inventory.service.InventoryService;
@@ -41,11 +43,18 @@ public class InventoryController {
 
     // Solo RESPONSABILE_APPROVVIGIONAMENTO può aggiungere nuovi prodotti
     @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
-    @PostMapping("/products")
+    @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> addProduct(
-            @RequestBody com.taasselunga.inventory.dto.ProductRequestDTO request
+            @RequestParam String name,
+            @RequestParam String category,
+            @RequestParam Double price,
+            @RequestParam String barcode,
+            @RequestParam Integer initialStock,
+            @RequestParam Integer threshold,
+            @RequestParam MultipartFile image
     ) {
-        inventoryService.addProduct(request);
+        inventoryService.addProduct(name, category, price, barcode, initialStock, threshold, image);
+
         return ResponseEntity.ok("Prodotto aggiunto con successo");
     }
 
