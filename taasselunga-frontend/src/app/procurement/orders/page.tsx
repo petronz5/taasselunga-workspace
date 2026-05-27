@@ -8,6 +8,7 @@ interface PurchaseOrder {
     orderNumber: string;
     orderDate: string;
     supplierName: string;
+    productName: string;
     totalAmount: number;
     status: string;
 }
@@ -80,11 +81,11 @@ export default function OrdersPage() {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-black text-gray-800">
-                        Storico ordini di approvvigionamento
+                        Ordini
                     </h2>
 
                     <p className="text-gray-500 font-medium mt-1">
-                        Monitora gli ordini inviati ai fornitori e il loro stato di avanzamento.
+                        Storico ordini di approvvigionamento verso i fornitori
                     </p>
                 </div>
             </div>
@@ -118,6 +119,7 @@ export default function OrdersPage() {
                             <thead>
                             <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
                                 <th className="p-4 font-bold">N° Ordine</th>
+                                <th className="p-4 font-bold">Prodotto</th>
                                 <th className="p-4 font-bold">Data</th>
                                 <th className="p-4 font-bold">Fornitore</th>
                                 <th className="p-4 font-bold text-right">Totale (€)</th>
@@ -134,21 +136,29 @@ export default function OrdersPage() {
                                     <td className="p-4 font-bold text-blue-900">
                                         {order.orderNumber}
                                     </td>
+
+                                    <td className="p-4 font-medium text-gray-800">
+                                        {order.productName}
+                                    </td>
+
                                     <td className="p-4 text-gray-600">
                                         {order.orderDate}
                                     </td>
+
                                     <td className="p-4 font-medium text-gray-800">
                                         {order.supplierName}
                                     </td>
+
                                     <td className="p-4 text-right font-black text-gray-800">
                                         €{order.totalAmount.toFixed(2)}
                                     </td>
+
                                     <td className="p-4 text-center">
-                                            <span
-                                                className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusClassName(order.status)}`}
-                                            >
-                                                {getStatusLabel(order.status)}
-                                            </span>
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusClassName(order.status)}`}
+                                        >
+                                            {getStatusLabel(order.status)}
+                                        </span>
                                     </td>
                                 </tr>
                             ))}

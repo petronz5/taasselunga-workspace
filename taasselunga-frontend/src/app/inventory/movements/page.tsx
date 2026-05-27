@@ -131,25 +131,16 @@ export default function InventoryMovementsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
-                    Movimenti verso i supermercati
+                    Storico spedizioni movimenti verso i supermercati
                 </h1>
 
+
+                <p className="text-sm text-slate-500 font-medium">
+                    Movimenti dei prodotti dal magazzino centrale verso i punti vendita.
+                </p>
             </div>
 
             <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-900">
-                            Storico spedizioni
-                        </h2>
-
-                        <p className="text-sm text-slate-500 font-medium">
-                            Elenco delle richieste evase dal magazzino centrale verso i punti vendita.
-                        </p>
-                    </div>
-
-                    <Truck className="w-6 h-6 text-blue-600" />
-                </div>
 
                 {loading ? (
                     <p className="text-slate-500 font-semibold">

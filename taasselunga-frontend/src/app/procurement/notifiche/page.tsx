@@ -106,9 +106,6 @@ export default function NotifichePage() {
                     <h1 className="text-3xl font-bold text-gray-900">
                         Notifiche
                     </h1>
-                    <p className="text-gray-500 mt-1">
-                        Tutte le notifiche procurement salvate nel database.
-                    </p>
                 </div>
 
                 {notifications.length > 0 && (

@@ -105,10 +105,6 @@ export default function InventoryNotifichePage() {
                     <h1 className="text-3xl font-bold text-gray-900">
                         Notifiche
                     </h1>
-
-                    <p className="text-gray-500 mt-1">
-                        Notifiche operative dedicate al magazzino centrale.
-                    </p>
                 </div>
 
                 {notifications.length > 0 && (

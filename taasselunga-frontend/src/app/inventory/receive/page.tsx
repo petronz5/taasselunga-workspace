@@ -161,56 +161,7 @@ export default function ReceiveGoodsPage() {
                 </p>
             </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Ordini in arrivo
-                    </p>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {incomingOrders.length}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-blue-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Da registrare
-                    </p>
-
-                    <p className="text-3xl font-black text-blue-700 mt-2">
-                        {incomingOrders.length}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Pezzi attesi
-                    </p>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {incomingOrders.reduce(
-                            (sum, order) => sum + (order.quantity ?? 0),
-                            0
-                        )}
-                    </p>
-                </div>
-            </section>
-
             <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-900">
-                            Ordini da ricevere
-                        </h2>
-
-                        <p className="text-sm text-slate-500 font-medium">
-                            Gli ordini creati da Alessia compaiono qui finché non vengono registrati come consegnati.
-                        </p>
-                    </div>
-
-                    <Truck className="w-6 h-6 text-blue-600" />
-                </div>
-
                 {loading ? (
                     <p className="text-slate-500 font-semibold">
                         Caricamento ordini in arrivo...

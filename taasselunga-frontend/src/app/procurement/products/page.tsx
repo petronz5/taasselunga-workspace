@@ -402,12 +402,12 @@ export default function ProcurementProductsPage() {
                                         </div>
 
                                         {isLowStock ? (
-                                            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black">
-                                                Sotto soglia
+                                            <span className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
+                                                    Sotto soglia
                                             </span>
                                         ) : (
-                                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black">
-                                                Disponibile
+                                            <span className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
+                                            Disponibile
                                             </span>
                                         )}
                                     </div>

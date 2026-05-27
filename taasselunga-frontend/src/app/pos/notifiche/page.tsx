@@ -99,10 +99,6 @@ export default function PosNotifichePage() {
                     <h1 className="text-3xl font-bold text-gray-900">
                         Notifiche
                     </h1>
-
-                    <p className="text-gray-500 mt-1">
-                        Aggiornamenti sulle richieste di rifornimento del punto vendita.
-                    </p>
                 </div>
 
                 {notifications.length > 0 && (

@@ -159,13 +159,13 @@
                                     Nessun prodotto sotto soglia
                                 </p>
                             )}
-    
+
                             {lowStockProducts.map((product) => (
                                 <div
                                     key={product.id}
-                                    className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm"
+                                    className="flex flex-col p-4 bg-white border border-gray-100 rounded-xl gap-4 shadow-sm"
                                 >
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-start gap-4">
                                         <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden shrink-0">
                                             {product.imageUrl ? (
                                                 <img
@@ -177,31 +177,42 @@
                                                 <Package className="w-6 h-6 text-gray-500" />
                                             )}
                                         </div>
-    
-                                        <div>
-                                            <p className="font-bold text-gray-900 text-lg">
-                                                {product.name}
-                                            </p>
-    
-                                            <p className="text-xs text-gray-400 font-medium">
-                                                {product.category}
-                                            </p>
-    
-                                            <div className="flex items-center gap-4 mt-1 text-sm">
+
+                                        <div className="flex-1">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="font-bold text-gray-900 text-lg leading-tight">
+                                                        {product.name}
+                                                    </p>
+
+                                                    <p className="text-xs text-gray-400 font-medium mt-1">
+                                                        {product.category}
+                                                    </p>
+                                                </div>
+
+                                                <span className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
+                                                    Necessario approvvigionamento
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 mt-4 text-sm">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-red-500" />
+
                                                     <span className="text-gray-500">
                                                         Giacenza:
                                                     </span>
+
                                                     <span className="font-black text-red-600">
                                                         {product.stockQuantity}
                                                     </span>
                                                 </div>
-    
+
                                                 <div className="flex items-center gap-1.5 border-l border-gray-200 pl-4">
                                                     <span className="text-gray-500">
                                                         Soglia min:
                                                     </span>
+
                                                     <span className="font-bold text-gray-700">
                                                         {product.reorderThreshold}
                                                     </span>
@@ -209,10 +220,6 @@
                                             </div>
                                         </div>
                                     </div>
-    
-                                    <span className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-lg text-sm font-bold">
-                                        Richiede approvvigionamento
-                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -276,9 +283,9 @@
     
                                                 <div>
                                                     <p className="font-black text-gray-900">
-                                                        Ordine suggerito - {product.name}
+                                                        {product.name}
                                                     </p>
-    
+
                                                     <p className="text-xs text-gray-500 mt-1">
                                                         Giacenza attuale: {product.stockQuantity} / Soglia minima: {product.reorderThreshold}
                                                     </p>

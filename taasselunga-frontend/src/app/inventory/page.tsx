@@ -185,14 +185,10 @@ export default function InventoryPage() {
                             <h2 className="text-xl font-black text-slate-900">
                                 Prodotti sotto soglia
                             </h2>
-
-                            <p className="text-sm text-slate-500 font-medium">
-                                Prodotti che richiedono attenzione del magazzino.
-                            </p>
                         </div>
 
                         <span className="bg-orange-100 text-orange-700 text-xs font-black px-3 py-1 rounded-full">
-                            {lowStockProducts.length} alert
+                            {lowStockProducts.length} urgenti
                         </span>
                     </div>
 
@@ -292,10 +288,6 @@ export default function InventoryPage() {
                             <h2 className="text-xl font-black text-slate-900">
                                 Merce in arrivo
                             </h2>
-
-                            <p className="text-sm text-slate-500 font-medium">
-                                Ordini creati da Alessia e attesi al polo logistico.
-                            </p>
                         </div>
 
                         <Truck className="w-6 h-6 text-blue-600" />

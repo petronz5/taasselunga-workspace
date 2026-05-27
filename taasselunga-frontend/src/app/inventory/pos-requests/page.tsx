@@ -189,7 +189,7 @@ export default function PosRequestsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
-                    Richieste POS
+                    Richieste punti vendita
                 </h1>
 
                 <p className="text-slate-500 mt-2 font-medium">
@@ -197,55 +197,7 @@ export default function PosRequestsPage() {
                 </p>
             </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Richieste aperte
-                    </p>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {pendingRequests.length}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-blue-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Punti vendita
-                    </p>
-
-                    <p className="text-3xl font-black text-blue-700 mt-2">
-                        {new Set(pendingRequests.map((request) => request.storeId)).size}
-                    </p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                    <p className="text-slate-500 font-semibold">
-                        Prodotti richiesti
-                    </p>
-
-                    <p className="text-3xl font-black text-black mt-2">
-                        {pendingRequests.reduce(
-                            (sum, request) => sum + request.quantity,
-                            0
-                        )}
-                    </p>
-                </div>
-            </section>
-
             <section className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-900">
-                            Richieste in preparazione
-                        </h2>
-
-                        <p className="text-sm text-slate-500 font-medium">
-                            Antonio prepara le spedizioni verso i supermercati della rete.
-                        </p>
-                    </div>
-
-                    <Truck className="w-6 h-6 text-blue-600" />
-                </div>
 
                 {loading ? (
                     <p className="text-slate-500 font-semibold">
@@ -260,7 +212,7 @@ export default function PosRequestsPage() {
                         </p>
 
                         <p className="text-sm text-slate-500 mt-1">
-                            Tutte le richieste POS risultano già spedite.
+                            Tutte le richieste dei punti vendita risultano già spedite.
                         </p>
                     </div>
                 ) : (
@@ -314,7 +266,7 @@ export default function PosRequestsPage() {
                                                     </p>
 
                                                     <p className="text-sm font-black text-slate-900">
-                                                        POS #{request.storeId}
+                                                        #{request.storeId}
                                                     </p>
                                                 </div>
 
