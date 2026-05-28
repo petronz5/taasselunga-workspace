@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,12 +41,13 @@ public class PointOfSaleService {
                 token
         );
 
+        String productName = getProductName(productId, token);
+
         String message = String.format(
-                "Nuova richiesta di rifornimento dal punto vendita %d: prodotto %d, quantità %d, richiesta ID %d",
+                "Il punto vendita %d ha richiesto %d unità di %s.",
                 storeId,
-                productId,
                 quantity,
-                savedRequest.getRequestId()
+                productName
         );
 
         rabbitTemplate.convertAndSend(
@@ -104,6 +106,61 @@ public class PointOfSaleService {
         return requestRepository.save(request);
     }
 
+    @Transactional
+    public void prepareShipment(
+            Long storeId,
+            Long productId,
+            Integer quantity,
+            String token
+    ) {
+        if (productId == null || quantity == null) {
+            throw new RuntimeException(
+                    "Prodotto o quantità mancanti"
+            );
+        }
+
+        if (quantity <= 0) {
+            throw new RuntimeException(
+                    "Quantità non valida"
+            );
+        }
+
+        inventoryClient.deductStock(
+                productId,
+                quantity,
+                token
+        );
+
+        StoreStock storeStock = storeStockRepository
+                .findByStoreIdAndProductId(storeId, productId)
+                .orElseGet(() -> {
+                    StoreStock newStock = new StoreStock();
+                    newStock.setStoreId(storeId);
+                    newStock.setProductId(productId);
+                    newStock.setAvailableQuantity(0);
+                    return newStock;
+                });
+
+        Integer currentQuantity = storeStock.getAvailableQuantity() != null
+                ? storeStock.getAvailableQuantity()
+                : 0;
+
+        storeStock.setAvailableQuantity(currentQuantity + quantity);
+
+        storeStockRepository.save(storeStock);
+
+        String productName = getProductName(productId, token);
+
+        String message = String.format(
+                "Spedizione preparata verso punto vendita %d: %d unità di %s.",
+                storeId,
+                quantity,
+                productName
+        );
+
+        System.out.println("Spedizione preparata: " + message);
+    }
+
     private void validateRequest(ReplenishmentRequest request) {
         if (request.getProductId() == null || request.getRequestedQuantity() == null) {
             throw new RuntimeException(
@@ -140,6 +197,44 @@ public class PointOfSaleService {
         storeStock.setAvailableQuantity(currentQuantity + requestedQuantity);
 
         storeStockRepository.save(storeStock);
+    }
+
+    private String getProductName(Long productId, String token) {
+        try {
+            Object response = inventoryClient.getProductsWithStock(token);
+
+            if (response instanceof Map<?, ?> map && map.get("content") instanceof List<?> content) {
+                return findProductNameInList(content, productId);
+            }
+
+            if (response instanceof List<?> list) {
+                return findProductNameInList(list, productId);
+            }
+
+        } catch (Exception error) {
+            System.out.println("Impossibile recuperare nome prodotto: " + error.getMessage());
+        }
+
+        return "prodotto " + productId;
+    }
+
+    private String findProductNameInList(List<?> products, Long productId) {
+        for (Object item : products) {
+            if (item instanceof Map<?, ?> productMap) {
+                Object idValue = productMap.get("id");
+                Object nameValue = productMap.get("name");
+
+                if (idValue != null && nameValue != null) {
+                    Long id = Long.valueOf(idValue.toString());
+
+                    if (id.equals(productId)) {
+                        return nameValue.toString();
+                    }
+                }
+            }
+        }
+
+        return "prodotto " + productId;
     }
 
     public List<StoreStock> getStoreStock(Long storeId) {

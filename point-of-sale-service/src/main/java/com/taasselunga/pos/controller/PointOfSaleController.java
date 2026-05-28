@@ -84,6 +84,21 @@ public class PointOfSaleController {
         );
     }
 
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
+    @PostMapping("/prepare-shipment")
+    public ResponseEntity<Void> prepareShipment(
+            @RequestParam Long storeId,
+            @RequestParam Long productId,
+            @RequestParam Integer quantity,
+            Authentication authentication
+    ) {
+        String token = getToken(authentication);
+
+        posService.prepareShipment(storeId, productId, quantity, token);
+
+        return ResponseEntity.ok().build();
+    }
+
     @PreAuthorize("hasRole('RESPONSABILE_PUNTO_VENDITA')")
     @GetMapping("/store-stock/{storeId}")
     public ResponseEntity<List<StoreStock>> getStoreStock(

@@ -128,7 +128,25 @@ export default function PosProductsPage() {
 
     async function sendPosNotification(productName: string) {
         try {
-            const response = await fetch("http://localhost:8080/notifications", {
+            const inventoryResponse = await fetch("http://localhost:8080/notifications", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(),
+                },
+                body: JSON.stringify({
+                    targetRole: "INVENTORY",
+                    title: "Nuova richiesta di rifornimento",
+                    message: `Il punto vendita ha richiesto rifornimento per ${productName}.`,
+                }),
+            });
+
+            if (!inventoryResponse.ok) {
+                const text = await inventoryResponse.text();
+                throw new Error(`Errore notifica Inventory: ${inventoryResponse.status} ${text}`);
+            }
+
+            const posResponse = await fetch("http://localhost:8080/notifications", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -141,17 +159,17 @@ export default function PosProductsPage() {
                 }),
             });
 
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`Errore notifica POS: ${response.status} ${text}`);
+            if (!posResponse.ok) {
+                const text = await posResponse.text();
+                throw new Error(`Errore notifica POS: ${posResponse.status} ${text}`);
             }
 
+            window.dispatchEvent(new Event("inventory-notifications-updated"));
             window.dispatchEvent(new Event("pos-notifications-updated"));
         } catch (error) {
-            console.error("Errore creazione notifica POS:", error);
+            console.error("Errore creazione notifiche:", error);
         }
     }
-
     async function handleCreateRequest(product: CombinedProduct) {
         const quantity = quantities[product.id] ?? 1;
 
@@ -180,8 +198,6 @@ export default function PosProductsPage() {
                 const text = await response.text();
                 throw new Error(`Errore invio richiesta: ${response.status} ${text}`);
             }
-
-            await sendPosNotification(product.name);
 
             setModal({ isOpen: true, title: "Richiesta Inviata", message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`, type: "success" });
         } catch (error) {
