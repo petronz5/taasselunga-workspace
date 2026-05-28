@@ -1,80 +1,64 @@
-"use client";
-
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface BarcodeScannerProps {
-    onScan: (barcode: string) => void;
+    onScan: (decodedText: string) => void;
     onClose: () => void;
 }
 
 export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [error, setError] = useState<string>("");
+    const scannerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        let stream: MediaStream | null = null;
-        let animationFrameId: number;
+        // Inizializza lo scanner
+        const scanner = new Html5QrcodeScanner(
+            "reader",
+            {
+                fps: 10,
+                qrbox: { width: 300, height: 150 },
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true
+            },
+            false
+        );
 
-        const startScanner = async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "environment" }
-                });
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                    await videoRef.current.play();
-                    scanFrame();
-                }
-            } catch (err) {
-                setError("Impossibile accedere alla fotocamera. Verifica i permessi.");
+        scanner.render(
+            (decodedText) => {
+                // Quando legge un codice, ferma la fotocamera e passa il dato
+                scanner.clear();
+                onScan(decodedText);
+            },
+            (errorMessage) => {
+                // Ignora gli errori continui di quando non vede un codice
             }
-        };
+        );
 
-        const scanFrame = async () => {
-            if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-                if ('BarcodeDetector' in window) {
-                    try {
-                        const barcodeDetector = new (window as any).BarcodeDetector({
-                            formats: ['qr_code', 'ean_13', 'ean_8', 'code_128', 'upc_a', 'upc_e']
-                        });
-                        const barcodes = await barcodeDetector.detect(videoRef.current);
-                        if (barcodes.length > 0) {
-                            onScan(barcodes[0].rawValue);
-                            return;
-                        }
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-            }
-            animationFrameId = requestAnimationFrame(scanFrame);
-        };
-
-        startScanner();
-
+        // Spegne la fotocamera quando si chiude il componente
         return () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
+            scanner.clear().catch(console.error);
         };
     }, [onScan]);
 
     return (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
-            {error ? (
-                <div className="text-white bg-red-600 p-4 rounded-md mb-4">{error}</div>
-            ) : (
-                <video ref={videoRef} className="w-full max-w-md h-auto bg-gray-900" playsInline muted />
-            )}
-            <button
-                onClick={onClose}
-                className="mt-8 px-6 py-3 bg-white text-black font-bold rounded-full shadow-lg hover:bg-gray-200 transition-colors"
-            >
-                Chiudi Scanner
-            </button>
+        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-black text-slate-900">Inquadra il Codice a Barre</h3>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-500 hover:text-red-500 font-bold transition-colors"
+                    >
+                        Chiudi
+                    </button>
+                </div>
+
+                {/* Qui dentro la libreria inietterà il flusso video della webcam del Mac */}
+                <div id="reader" ref={scannerRef} className="rounded-xl overflow-hidden border-2 border-blue-100"></div>
+
+                <p className="text-center text-sm text-slate-500 font-medium mt-4">
+                    Avvicina il codice a barre del prodotto alla fotocamera.
+                </p>
+            </div>
         </div>
     );
 }
