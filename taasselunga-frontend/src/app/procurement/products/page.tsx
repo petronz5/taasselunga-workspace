@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import AlertModal from "../../../components/AlertModal";
+
 import {
     Package,
     Search,
@@ -33,8 +35,10 @@ export default function ProcurementProductsPage() {
 
     const [isScanning, setIsScanning] = useState(false);
     const [showForm, setShowForm] = useState(false);
+
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
     const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
@@ -47,8 +51,8 @@ export default function ProcurementProductsPage() {
         category: "",
         price: "",
         barcode: "",
-        initialStock: "0",
-        threshold: "5",
+        initialStock: "",
+        threshold: "",
     });
 
     useEffect(() => {
@@ -134,6 +138,8 @@ export default function ProcurementProductsPage() {
     async function handleCreateProduct(e: React.FormEvent) {
         e.preventDefault();
 
+        const createdProductName = formData.name;
+
         try {
             const token = localStorage.getItem("access_token");
 
@@ -165,7 +171,14 @@ export default function ProcurementProductsPage() {
                 throw new Error("Errore creazione prodotto");
             }
 
-            await fetchProducts();
+            setModal({
+                isOpen: true,
+                title: "Prodotto creato",
+                message: `${createdProductName} è stato aggiunto con successo al catalogo.`,
+                type: "success",
+            });
+
+            setSearch(createdProductName);
 
             setFormData({
                 name: "",
@@ -173,16 +186,22 @@ export default function ProcurementProductsPage() {
                 price: "",
                 barcode: "",
                 initialStock: "0",
-                threshold: "5",
+                threshold: "200",
             });
 
             setSelectedFile(null);
             setShowForm(false);
 
-            setModal({ isOpen: true, title: "Prodotto Creato", message: "Il prodotto è stato inserito con successo nel catalogo", type: "success" });
+            await fetchProducts(0);
         } catch (error) {
             console.error(error);
-            setModal({ isOpen: true, title: "Errore Creazione", message: "Impossibile creare il prodotto, riprova più tardi", type: "error" });
+
+            setModal({
+                isOpen: true,
+                title: "Errore creazione",
+                message: "Impossibile creare il prodotto, riprova più tardi.",
+                type: "error",
+            });
         }
     }
 
@@ -215,15 +234,35 @@ export default function ProcurementProductsPage() {
                 throw new Error("Errore creazione ordine");
             }
 
-            alert(`Ordine creato per ${product.name}`);
+            setModal({
+                isOpen: true,
+                title: "Ordine creato",
+                message: `Ordine creato con successo per ${product.name}.`,
+                type: "success",
+            });
+
         } catch (error) {
             console.error(error);
-            setModal({ isOpen: true, title: "Errore Ordine", message: "Si è verificato un errore durante l'invio dell'ordine", type: "error" });
+
+            setModal({
+                isOpen: true,
+                title: "Errore Ordine",
+                message: "Si è verificato un errore durante l'invio dell'ordine",
+                type: "error",
+            });
         }
     }
 
     return (
         <div className="space-y-6">
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
+
             {isScanning && (
                 <BarcodeScanner
                     onScan={handleScan}

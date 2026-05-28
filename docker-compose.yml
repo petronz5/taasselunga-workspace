@@ -2,7 +2,7 @@ services:
 
   # ==========================================
   # DATABASE POSTGRES - Memorizza i dati dei microservizi
-  # ==========================================
+  # ==========================================######
   postgres:
     image: postgres:16-alpine
     container_name: taasselunga-postgres
@@ -17,7 +17,16 @@ services:
 
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres:/docker-entrypoint-initdb.d
+
+    # ==========================================
+    # HEALTHCHECK - Attende che Postgres sia pronto
+    # ==========================================
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     networks:
       - taasselunga-network
@@ -56,10 +65,14 @@ services:
       # Attiva application-docker.yml
       - SPRING_PROFILES_ACTIVE=docker
 
-
+    # ==========================================
+    # DEPENDENCIES - Attende database e RabbitMQ
+    # ==========================================
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
     networks:
       - taasselunga-network
@@ -82,9 +95,14 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    # ==========================================
+    # DEPENDENCIES - Attende database e RabbitMQ
+    # ==========================================
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
     networks:
       - taasselunga-network
@@ -107,10 +125,16 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    # ==========================================
+    # DEPENDENCIES - Attende database, RabbitMQ e Inventory
+    # ==========================================
     depends_on:
-      - postgres
-      - rabbitmq
-      - inventory-service
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      inventory-service:
+        condition: service_started
 
     networks:
       - taasselunga-network
@@ -134,9 +158,14 @@ services:
       - DB_USER=root
       - DB_PASSWORD=password
 
+    # ==========================================
+    # DEPENDENCIES - Attende Postgres pronto e RabbitMQ
+    # ==========================================
     depends_on:
-      - rabbitmq
-      - postgres
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
     networks:
       - taasselunga-network
@@ -159,11 +188,18 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
+    # ==========================================
+    # DEPENDENCIES - Attende tutti i microservizi
+    # ==========================================
     depends_on:
-      - inventory-service
-      - procurement-service
-      - point-of-sale-service
-      - notification-service
+      inventory-service:
+        condition: service_started
+      procurement-service:
+        condition: service_started
+      point-of-sale-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
 
     networks:
       - taasselunga-network

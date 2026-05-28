@@ -17,3 +17,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+#Docker-compose
+docker-compose.yml

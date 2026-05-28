@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { FileText, Package, Send } from "lucide-react";
+import AlertModal from "../../components/AlertModal";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -25,6 +26,16 @@ export default function DashboardPage() {
     useEffect(() => {
         fetchLowStockProducts();
     }, []);
+
+    const [modal, setModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as "success" | "error" | "info",
+    });
+
+    const closeModal = () =>
+        setModal((prev) => ({ ...prev, isOpen: false }));
 
     const getAuthHeaders = () => {
         const token = localStorage.getItem("access_token");
@@ -115,10 +126,26 @@ export default function DashboardPage() {
                 throw new Error("Errore nella creazione dell'ordine");
             }
 
-            alert(`Ordine inviato per ${product.name}`);
+            setModal({
+                isOpen: true,
+                title: "Ordine inviato",
+                message: `Ordine per ${product.name} inviato con successo.`,
+                type: "success",
+            });
+
+            setLowStockProducts((prev) =>
+                prev.filter((p) => p.id !== product.id)
+            );
+
         } catch (error) {
             console.error("Errore invio ordine:", error);
-            alert("Errore durante l'invio dell'ordine");
+
+            setModal({
+                isOpen: true,
+                title: "Errore ordine",
+                message: "Errore durante l'invio dell'ordine.",
+                type: "error",
+            });
         } finally {
             setIsSubmittingOrderId(null);
         }
@@ -126,6 +153,13 @@ export default function DashboardPage() {
 
     return (
         <>
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
             <header className="mb-8 mt-4 md:mt-0">
                 <h2 className="text-2xl md:text-3xl font-black text-gray-800 mb-2">
                     Benvenuta, Alessia

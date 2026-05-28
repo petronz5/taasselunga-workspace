@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { ClipboardCheck, Package, Truck } from "lucide-react";
+import AlertModal from "../../../components/AlertModal";
 
 interface Product {
     id: number;
@@ -32,9 +33,20 @@ export default function ReceiveGoodsPage() {
     const [loading, setLoading] = useState(true);
     const [receivingOrderId, setReceivingOrderId] = useState<number | null>(null);
 
+    const [modal, setModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as "success" | "error" | "info",
+    });
+
+    const closeModal = () =>
+        setModal((prev) => ({ ...prev, isOpen: false }));
+
     useEffect(() => {
         loadData();
     }, []);
+
 
     function getAuthHeaders() {
         const token = localStorage.getItem("access_token");
@@ -143,7 +155,12 @@ export default function ReceiveGoodsPage() {
                 throw new Error("Errore aggiornamento stato ordine");
             }
 
-            alert(`Merce ricevuta per ordine ${order.orderNumber}`);
+            setModal({
+                isOpen: true,
+                title: "Merce ricevuta",
+                message: `Merce ricevuta con successo per l'ordine ${order.orderNumber}.`,
+                type: "success",
+            });
 
             await loadData();
         } catch (error) {
@@ -156,6 +173,14 @@ export default function ReceiveGoodsPage() {
 
     return (
         <div className="space-y-6">
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
+
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
                     Ricezione merce

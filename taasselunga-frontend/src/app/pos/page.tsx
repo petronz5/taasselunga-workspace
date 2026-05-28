@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { ClipboardList, Package, Warehouse } from "lucide-react";
+import AlertModal from "../../components/AlertModal";
 
 interface Product {
     id: number;
@@ -34,6 +35,16 @@ export default function PosDashboardPage() {
     const [draftQuantities, setDraftQuantities] = useState<Record<number, number>>({});
     const [submittingProductId, setSubmittingProductId] = useState<number | null>(null);
     const [sentDraftProductIds, setSentDraftProductIds] = useState<number[]>([]);
+
+    const [modal, setModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as "success" | "error" | "info",
+    });
+
+    const closeModal = () =>
+        setModal((prev) => ({ ...prev, isOpen: false }));
 
     useEffect(() => {
         loadData(true);
@@ -194,14 +205,24 @@ export default function PosDashboardPage() {
         const quantity = draftQuantities[product.id] ?? 1;
 
         if (quantity <= 0) {
-            alert("Inserisci una quantità valida.");
+            setModal({
+                isOpen: true,
+                title: "Quantità non valida",
+                message: "Inserisci una quantità valida.",
+                type: "info",
+            });
+
             return;
         }
 
         if (quantity > product.stockQuantity) {
-            alert(
-                `Quantità non disponibile. Disponibilità massima magazzino centrale: ${product.stockQuantity}`
-            );
+            setModal({
+                isOpen: true,
+                title: "Quantità non disponibile",
+                message: `Disponibilità massima magazzino centrale: ${product.stockQuantity}`,
+                type: "error",
+            });
+
             return;
         }
 
@@ -227,12 +248,25 @@ export default function PosDashboardPage() {
                 prev.includes(product.id) ? prev : [...prev, product.id]
             );
 
-            alert(`Richiesta inviata per ${product.name}`);
+            setModal({
+                isOpen: true,
+                title: "Richiesta inviata",
+                message: `Richiesta inviata con successo per ${product.name}.`,
+                type: "success",
+            });
 
             await loadData(false);
+
         } catch (error) {
             console.error("Errore richiesta rifornimento:", error);
-            alert("Errore durante l'invio della richiesta");
+
+            setModal({
+                isOpen: true,
+                title: "Errore invio",
+                message: "Errore durante l'invio della richiesta.",
+                type: "error",
+            });
+
         } finally {
             setSubmittingProductId(null);
         }
@@ -240,6 +274,13 @@ export default function PosDashboardPage() {
 
     return (
         <div className="space-y-6">
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
                     Benvenuto Luigi
@@ -418,8 +459,8 @@ export default function PosDashboardPage() {
                                                     </div>
 
                                                     <span className="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full shrink-0">
-            Bozza
-        </span>
+                                                        Bozza
+                                                    </span>
 
                                                 </div>
 

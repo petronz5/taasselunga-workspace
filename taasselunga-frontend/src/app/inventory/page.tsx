@@ -162,6 +162,7 @@ export default function InventoryPage() {
                 message: `Operazione di sollecitazione per ${product.name} inoltrata con successo`,
                 type: "success"
             });
+
         } catch (error) {
             console.error("Errore invio notifica:", error);
             setModal({

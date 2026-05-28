@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Package, ShoppingCart, Search, Warehouse } from "lucide-react";
 import Barcode from "react-barcode";
+import AlertModal from "../../../components/AlertModal";
 
 interface StoreStock {
     productId: number;
@@ -31,8 +32,16 @@ export default function PosProductsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [submittingProductId, setSubmittingProductId] = useState<number | null>(null);
-    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
-    const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
+
+    const [modal, setModal] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as "success" | "error" | "info",
+    });
+
+    const closeModal = () =>
+        setModal((prev) => ({ ...prev, isOpen: false }));
 
     function getAuthHeaders() {
         const token = localStorage.getItem("access_token");
@@ -189,6 +198,14 @@ export default function PosProductsPage() {
 
     return (
         <>
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
+
             <header className="mb-8 mt-4 md:mt-0 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-gray-800 mb-2">

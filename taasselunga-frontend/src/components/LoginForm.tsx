@@ -5,7 +5,12 @@ import {
     signInWithEmailAndPassword,
     signInWithPopup,
 } from "firebase/auth";
-import { auth, googleProvider } from "../lib/firebase";
+
+import {
+    auth,
+    googleProvider,
+    facebookProvider,
+} from "../lib/firebase";
 
 export default function LoginForm() {
     const [email, setEmail] = useState("");
@@ -25,7 +30,12 @@ export default function LoginForm() {
             return;
         }
 
-        if (userEmail.toLowerCase() === "antonio@taasselunga.it") {
+        if (
+            userEmail.toLowerCase() === "antonio@taasselunga.it" ||
+            userEmail.toLowerCase() === "luca.disalvo01@gmail.com" ||
+            userEmail.toLowerCase() === "luca.disalvo40@edu.unito.it" ||
+            userEmail.toLowerCase() === "luca.disalvo40@unito.it"
+        ) {
             window.location.href = "/inventory";
             return;
         }
@@ -36,6 +46,7 @@ export default function LoginForm() {
         }
 
         setError("Utente non autorizzato");
+
         localStorage.removeItem("access_token");
         localStorage.removeItem("user_email");
         localStorage.removeItem("user_name");
@@ -71,87 +82,126 @@ export default function LoginForm() {
         }
     }
 
+    async function handleFacebookLogin() {
+        setError("");
+
+        try {
+            const result = await signInWithPopup(auth, facebookProvider);
+            await saveSessionAndRedirect(result.user);
+        } catch (err: any) {
+            console.error(err);
+            setError("Errore durante il login con Facebook");
+        }
+    }
+
     return (
-        <main className="min-h-screen bg-white flex items-center justify-center">
-            <form onSubmit={handleLogin} className="w-[380px]">
-                <div className="flex justify-center mb-8">
+        <main className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-[#eef2ff] flex items-center justify-center px-4 py-6">
+            <form
+                onSubmit={handleLogin}
+                className="w-full max-w-[420px] bg-white rounded-3xl shadow-2xl border border-gray-100 px-8 py-7"
+            >
+                <div className="flex justify-center mb-5">
                     <img
                         src="/logo-taasselunga.png"
                         alt="Taasselunga"
-                        className="w-[240px] h-auto object-contain"
+                        className="w-[190px] h-auto object-contain"
                     />
                 </div>
 
-                <p className="text-center text-sm font-semibold text-[#1B3557]">
-                    Accesso all’area riservata
-                </p>
+                <div className="text-center mb-5">
+                    <h1 className="text-2xl font-black text-[#1B3557]">
+                        Benvenuto!
+                    </h1>
 
-                <p className="text-center text-sm text-[#1B3557] mb-10">
-                    Solo personale autorizzato
-                </p>
-
-                <div className="mb-5">
-                    <label className="block text-xs font-semibold text-[#1B3557] mb-1">
-                        Email aziendale
-                    </label>
-
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Inserisci la tua email"
-                        className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm outline-none"
-                        required
-                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                        Accedi all’area riservata Taasselunga
+                    </p>
                 </div>
 
-                <div className="mb-3">
-                    <label className="block text-xs font-semibold text-[#1B3557] mb-1">
-                        Password
-                    </label>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold text-[#1B3557] mb-2">
+                            Email aziendale
+                        </label>
 
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Inserisci la tua password"
-                        className="w-full border border-gray-300 rounded-md px-4 py-3 text-sm outline-none"
-                        required
-                    />
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Inserisci la tua email"
+                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1B3557] transition"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-[#1B3557] mb-2">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Inserisci la tua password"
+                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1B3557] transition"
+                            required
+                        />
+                    </div>
                 </div>
 
                 {error && (
-                    <p className="text-red-500 text-sm mb-4">{error}</p>
+                    <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-2xl px-4 py-3">
+                        {error}
+                    </div>
                 )}
 
                 <button
                     type="submit"
-                    className="w-full bg-[#1B3557] text-white py-3 rounded-md font-semibold text-sm hover:opacity-90 transition"
+                    className="w-full mt-5 bg-[#1B3557] text-white py-3 rounded-2xl font-bold text-sm hover:scale-[1.01] hover:opacity-95 transition-all"
                 >
-                    Login
+                    Accedi
                 </button>
 
-                <div className="flex items-center gap-4 my-9">
-                    <div className="h-px bg-[#1B3557] flex-1" />
+                <div className="flex items-center gap-4 my-5">
+                    <div className="h-px bg-gray-200 flex-1" />
 
-                    <span className="text-xs text-gray-500">Or</span>
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Oppure
+                </span>
 
-                    <div className="h-px bg-[#1B3557] flex-1" />
+                    <div className="h-px bg-gray-200 flex-1" />
                 </div>
 
-                <button
-                    type="button"
-                    onClick={handleGoogleLogin}
-                    className="w-full border border-gray-300 rounded-md py-3 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition"
-                >
-                    <img
-                        src="/logo-google.png"
-                        alt="Google"
-                        className="w-4 h-4 object-contain"
-                    />
+                <div className="space-y-3">
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        className="w-full border border-gray-200 bg-white rounded-2xl py-3 text-sm font-semibold flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+                    >
+                        <img
+                            src="/logo-google.png"
+                            alt="Google"
+                            className="w-5 h-5 object-contain"
+                        />
 
-                    Sign in with Google
-                </button>
+                        Continua con Google
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleFacebookLogin}
+                        className="w-full border border-gray-200 bg-white rounded-2xl py-3 text-sm font-semibold flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+                    >
+                        <img
+                            src="/logo-fb.png"
+                            alt="Facebook"
+                            className="w-5 h-5 object-contain"
+                        />
+
+                        Continua con Facebook
+                    </button>
+                </div>
             </form>
         </main>
     );

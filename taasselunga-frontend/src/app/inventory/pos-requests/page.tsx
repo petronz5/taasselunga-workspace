@@ -7,6 +7,7 @@ import {
     Package,
     Truck,
 } from "lucide-react";
+import AlertModal from "../../../components/AlertModal";
 
 interface Product {
     id: number;
@@ -32,6 +33,9 @@ export default function PosRequestsPage() {
     const [requests, setRequests] = useState<PosRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<number | null>(null);
+
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", type: "info" as "success" | "error" | "info" });
+    const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
     useEffect(() => {
         loadData();
@@ -169,17 +173,28 @@ export default function PosRequestsPage() {
 
             await sendPosNotification(product?.name || "il prodotto richiesto");
 
-            alert("Spedizione preparata con successo");
+            setModal({
+                isOpen: true,
+                title: "Spedizione preparata",
+                message: "La spedizione è stata preparata con successo.",
+                type: "success",
+            });
 
             await loadData();
+
         } catch (error) {
             console.error("Errore preparazione spedizione:", error);
 
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Errore durante la preparazione della spedizione"
-            );
+            setModal({
+                isOpen: true,
+                title: "Errore spedizione",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "Errore durante la preparazione della spedizione",
+                type: "error",
+            });
+
         } finally {
             setProcessingId(null);
         }
@@ -187,6 +202,14 @@ export default function PosRequestsPage() {
 
     return (
         <div className="space-y-6">
+            <AlertModal
+                isOpen={modal.isOpen}
+                onClose={closeModal}
+                title={modal.title}
+                message={modal.message}
+                type={modal.type}
+            />
+
             <div>
                 <h1 className="text-3xl font-black text-slate-900">
                     Richieste punti vendita
