@@ -2,7 +2,7 @@ services:
 
   # ==========================================
   # DATABASE POSTGRES - Memorizza i dati dei microservizi
-  # ==========================================######
+  # ==========================================
   postgres:
     image: postgres:16-alpine
     container_name: taasselunga-postgres
@@ -197,6 +197,38 @@ services:
       procurement-service:
         condition: service_started
       point-of-sale-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+    networks:
+      - taasselunga-network
+
+
+  # ==========================================
+  # FRONTEND - Next.js
+  # ==========================================
+  frontend:
+    build:
+      context: ./taasselunga-frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+
+    container_name: taasselunga-frontend
+
+    ports:
+      - "3000:3000"
+    # ==========================================
+    # DEPENDENCIES - Attende Gateway e Notification Service
+    # ==========================================
+    depends_on:
+      api-gateway:
         condition: service_started
       notification-service:
         condition: service_started
