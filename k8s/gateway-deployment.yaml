@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taasselunga-api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taasselunga-api-gateway
+  template:
+    metadata:
+      labels:
+        app: taasselunga-api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: taasselunga-workspace-api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"

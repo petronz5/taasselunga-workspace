@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: procurement-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: procurement-service
+  template:
+    metadata:
+      labels:
+        app: procurement-service
+    spec:
+      containers:
+        - name: procurement-service
+          image: taasselunga-workspace-procurement-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
