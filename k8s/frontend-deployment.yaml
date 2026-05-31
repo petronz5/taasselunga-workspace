@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: taasselunga-workspace-frontend:latest
-          imagePullPolicy: IfNotPresent
+          image: lucaads01/taasselunga-frontend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           env:

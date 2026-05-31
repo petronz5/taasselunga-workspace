@@ -55,7 +55,11 @@ services:
   # INVENTORY SERVICE - Gestione Magazzino
   # ==========================================
   inventory-service:
-    build: ./inventory-service
+    image: lucaads01/taasselunga-inventory-service:latest
+
+    # Vecchia soluzione locale:
+    # build: ./inventory-service
+
     container_name: taasselunga-inventory
 
     ports:
@@ -82,7 +86,11 @@ services:
   # PROCUREMENT SERVICE - Approvvigionamento
   # ==========================================
   procurement-service:
-    build: ./procurement-service
+    image: lucaads01/taasselunga-procurement-service:latest
+
+    # Vecchia soluzione locale:
+    # build: ./procurement-service
+
     container_name: taasselunga-procurement
 
     ports:
@@ -112,7 +120,11 @@ services:
   # POINT OF SALE SERVICE - Gestione Punto Vendita
   # ==========================================
   point-of-sale-service:
-    build: ./point-of-sale-service
+    image: lucaads01/taasselunga-point-of-sale-service:latest
+
+    # Vecchia soluzione locale:
+    # build: ./point-of-sale-service
+
     container_name: taasselunga-pos
 
     ports:
@@ -144,7 +156,11 @@ services:
   # NOTIFICATION SERVICE - Invio notifiche realtime
   # ==========================================
   notification-service:
-    build: ./notification-service
+    image: lucaads01/taasselunga-notification-service:latest
+
+    # Vecchia soluzione locale:
+    # build: ./notification-service
+
     container_name: taasselunga-notification
 
     ports:
@@ -175,7 +191,11 @@ services:
   # API GATEWAY - Punto di ingresso unico
   # ==========================================
   api-gateway:
-    build: ./api-gateway
+    image: lucaads01/taasselunga-api-gateway:latest
+
+    # Vecchia soluzione locale:
+    # build: ./api-gateway
+
     container_name: taasselunga-api-gateway
 
     ports:
@@ -209,21 +229,25 @@ services:
   # FRONTEND - Next.js
   # ==========================================
   frontend:
-    build:
-      context: ./taasselunga-frontend
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:8080
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
-        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
-        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
-        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
-        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
+    image: lucaads01/taasselunga-frontend:latest
+
+    # Vecchia soluzione locale:
+    # build:
+    #   context: ./taasselunga-frontend
+    #   args:
+    #     NEXT_PUBLIC_API_URL: http://localhost:8080
+    #     NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
+    #     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+    #     NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+    #     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+    #     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+    #     NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
 
     container_name: taasselunga-frontend
 
     ports:
       - "3000:3000"
+
     # ==========================================
     # DEPENDENCIES - Attende Gateway e Notification Service
     # ==========================================

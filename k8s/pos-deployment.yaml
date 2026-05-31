@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: point-of-sale-service
-          image: taasselunga-workspace-point-of-sale-service:latest
-          imagePullPolicy: IfNotPresent
+          image: lucaads01/taasselunga-point-of-sale-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8084
           env:

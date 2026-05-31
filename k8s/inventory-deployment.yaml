@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: inventory-service
-          image: taasselunga-workspace-inventory-service:latest
-          imagePullPolicy: IfNotPresent
+          image: lucaads01/taasselunga-inventory-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
           env:

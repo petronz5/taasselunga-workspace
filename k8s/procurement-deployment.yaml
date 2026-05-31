@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: procurement-service
-          image: taasselunga-workspace-procurement-service:latest
-          imagePullPolicy: IfNotPresent
+          image: lucaads01/taasselunga-procurement-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8082
           env:
