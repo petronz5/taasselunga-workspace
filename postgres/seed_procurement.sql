@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict ll1Jtn5Z2yKMfnIF3fI6Fndaxb5Blgd0QbxRdjOVyy4nUMeoCOJKObUwZCIh7xB
+\restrict J2YiX5FPZckThjMYQWGqPWDmfU9vTWZYidoqhE6lRBhhvUDvGSX7q3ANzCDxacn
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-30 20:08:15
+-- Started on 2026-05-31 23:20:29
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -38,8 +38,10 @@ COPY public.order_line (line_id, product_id, quantity) FROM stdin;
 --
 
 COPY public.purchase_order (id, order_date, order_number, product_id, product_name, quantity, status, total_amount, unit_price) FROM stdin;
-15	2026-05-28 23:22:51.220042	ORD-1780010571053	8	Coca Cola 1.5L	110	CONSEGNATO	192.5	1.75
-16	2026-05-28 23:27:05.650322	ORD-1780010825643	5	Penne Rigate De Cecco 500g	1	CONSEGNATO	1.55	1.55
+4	2026-05-31 19:22:08.271841	ORD-1780255328275	51	Salame Milano 100g	1	CONSEGNATO	1.9	1.9
+3	2026-05-31 19:21:55.908118	ORD-1780255315651	1	Latte Parmalat 1L	1	CONSEGNATO	1.3	1.3
+2	2026-05-31 19:21:41.349591	ORD-1780255301451	51	Salame Milano 100g	15	CONSEGNATO	28.5	1.9
+1	2026-05-31 19:21:41.061701	ORD-1780255300165	51	Salame Milano 100g	15	CONSEGNATO	28.5	1.9
 \.
 
 
@@ -58,14 +60,14 @@ SELECT pg_catalog.setval('public.order_line_line_id_seq', 1, false);
 -- Name: purchase_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.purchase_order_id_seq', 16, true);
+SELECT pg_catalog.setval('public.purchase_order_id_seq', 4, true);
 
 
--- Completed on 2026-05-30 20:08:15
+-- Completed on 2026-05-31 23:20:29
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ll1Jtn5Z2yKMfnIF3fI6Fndaxb5Blgd0QbxRdjOVyy4nUMeoCOJKObUwZCIh7xB
+\unrestrict J2YiX5FPZckThjMYQWGqPWDmfU9vTWZYidoqhE6lRBhhvUDvGSX7q3ANzCDxacn
 

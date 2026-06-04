@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict gH9TZEdfYkBFmlIIIDieFEokhaonEnu1ugglRxDyVjsWQSx28zsl23i0d5HdHWo
+\restrict RCJeagNTziDZhXKEWIgP3k0xX2XYMk5PfzAGUI2tzx60VfyLcT7DAX4KqFGbB9v
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-30 20:07:56
+-- Started on 2026-05-31 23:20:43
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -28,8 +28,6 @@ SET row_security = off;
 --
 
 COPY public.replenishment_request (request_id, product_id, request_date, requested_quantity, status_name, store_id) FROM stdin;
-18	1	2026-05-28 23:28:46.453785	5	SPEDITO	1
-19	3	2026-05-28 23:37:45.327337	2	INVIATA	1
 \.
 
 
@@ -67,6 +65,7 @@ COPY public.store_stock (stock_id, available_quantity, minimum_level, product_id
 12	161	100	12	1
 1	109	100	1	1
 11	200	100	11	1
+18	31	\N	51	1
 \.
 
 
@@ -76,7 +75,7 @@ COPY public.store_stock (stock_id, available_quantity, minimum_level, product_id
 -- Name: replenishment_request_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.replenishment_request_request_id_seq', 19, true);
+SELECT pg_catalog.setval('public.replenishment_request_request_id_seq', 1, false);
 
 
 --
@@ -94,14 +93,14 @@ SELECT pg_catalog.setval('public.sale_id_seq', 1, false);
 -- Name: store_stock_stock_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.store_stock_stock_id_seq', 17, true);
+SELECT pg_catalog.setval('public.store_stock_stock_id_seq', 18, true);
 
 
--- Completed on 2026-05-30 20:07:56
+-- Completed on 2026-05-31 23:20:43
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict gH9TZEdfYkBFmlIIIDieFEokhaonEnu1ugglRxDyVjsWQSx28zsl23i0d5HdHWo
+\unrestrict RCJeagNTziDZhXKEWIgP3k0xX2XYMk5PfzAGUI2tzx60VfyLcT7DAX4KqFGbB9v
 

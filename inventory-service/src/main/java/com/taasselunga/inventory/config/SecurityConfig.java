@@ -52,12 +52,7 @@ public class SecurityConfig {
             authorities.add(new SimpleGrantedAuthority("ROLE_RESPONSABILE_APPROVVIGIONAMENTO"));
         }
 
-        if (
-                "antonio@taasselunga.it".equalsIgnoreCase(email) ||
-                        "luca.disalvo01@gmail.com".equalsIgnoreCase(email) ||
-                        "luca.disalvo40@edu.unito.it".equalsIgnoreCase(email) ||
-                        "luca.disalvo40@unito.it".equalsIgnoreCase(email)
-        ) {
+        if ("antonio@taasselunga.it".equalsIgnoreCase(email) || "luca.disalvo01@gmail.com".equalsIgnoreCase(email) || "luca.disalvo40@edu.unito.it".equalsIgnoreCase(email) || "luca.disalvo40@unito.it".equalsIgnoreCase(email)) {
             authorities.add(new SimpleGrantedAuthority("ROLE_OPERATORE_DI_MAGAZZINO"));
         }
 

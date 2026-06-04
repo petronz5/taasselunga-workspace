@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict 9hr6qwARZFDklvz6O6VKqwrriGhmtrDnDEuiM8x5HbZ2kDxXXPKkfjVOrAr4yZg
+\restrict aOFUH8K4eYAvvhkmdVGcaXtk0UVTXtGYLgWTyeoklk9SeSge07xoo4XdnDJ3whH
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 18.3
 
--- Started on 2026-05-30 20:07:40
+-- Started on 2026-05-31 23:21:00
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,47 +21,106 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
 --
--- TOC entry 3410 (class 0 OID 24577)
+-- TOC entry 216 (class 1259 OID 24577)
+-- Name: notifications; Type: TABLE; Schema: public; Owner: root
+--
+
+CREATE TABLE public.notifications (
+    id integer NOT NULL,
+    target_role character varying(50) NOT NULL,
+    title character varying(255) NOT NULL,
+    message text NOT NULL,
+    is_read boolean DEFAULT false NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.notifications OWNER TO root;
+
+--
+-- TOC entry 215 (class 1259 OID 24576)
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: root
+--
+
+CREATE SEQUENCE public.notifications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.notifications_id_seq OWNER TO root;
+
+--
+-- TOC entry 3419 (class 0 OID 0)
+-- Dependencies: 215
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: root
+--
+
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
+
+
+--
+-- TOC entry 3264 (class 2604 OID 24580)
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
+
+
+--
+-- TOC entry 3413 (class 0 OID 24577)
 -- Dependencies: 216
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: root
 --
 
 COPY public.notifications (id, target_role, title, message, is_read, created_at) FROM stdin;
-143	POS	Richiesta di rifornimento inviata	La richiesta di rifornimento per Latte Parmalat 1L è stata inviata al magazzino centrale.	t	2026-05-28 23:28:46.924278
-141	INVENTORY	Nuova richiesta POS	Il punto vendita 1 ha richiesto 5 unità di Latte Parmalat 1L.	t	2026-05-28 23:28:46.830359
-142	INVENTORY	Nuova richiesta di rifornimento	Il punto vendita ha richiesto rifornimento per Latte Parmalat 1L.	t	2026-05-28 23:28:46.871699
-145	POS	Spedizione in arrivo	La spedizione per Latte Parmalat 1L è stata preparata dal magazzino centrale ed è in arrivo al punto vendita.	t	2026-05-28 23:29:30.425347
-144	PROCUREMENT	Stock basso	ATTENZIONE: Latte Parmalat 1L è sceso sotto la soglia minima. Giacenza attuale: 196.	t	2026-05-28 23:29:30.361463
-149	POS	Merce spedita al punto vendita	Antonio ha spedito 10 unità di Prosciutto Cotto Rovagnati 100g al punto vendita.	t	2026-05-28 23:34:23.242613
-150	INVENTORY	Nuova richiesta POS	Il punto vendita 1 ha richiesto 2 unità di Mozzarella Santa Lucia 125g.	t	2026-05-28 23:37:45.415369
-151	PROCUREMENT	Sollecito rifornimento da magazzino	Antonio richiede urgentemente un rifornimento di Prosciutto Cotto Rovagnati 100g. Giacenza attuale: 90, soglia minima: 200.	t	2026-05-29 17:53:01.023271
-136	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780010571053 - Importo: 192.50	t	2026-05-28 23:22:51.474199
-135	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780010571053 - Importo: 192.50	t	2026-05-28 23:22:51.465937
-138	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780010825643 - Importo: 1.55	t	2026-05-28 23:27:05.691942
-137	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780010825643 - Importo: 1.55	t	2026-05-28 23:27:05.681687
-139	PROCUREMENT	Merce ricevuta in deposito	Antonio ha confermato la ricezione di 1 unità di Penne Rigate De Cecco 500g per l'ordine ORD-1780010825643.	t	2026-05-28 23:27:24.600076
-140	PROCUREMENT	Sollecito approvvigionamento	Antonio segnala prodotto sotto soglia: Uova AIA x10. Giacenza attuale: 95, soglia minima: 200.	t	2026-05-28 23:27:48.044624
-148	PROCUREMENT	Stock basso	ATTENZIONE: Prosciutto Cotto Rovagnati 100g è sceso sotto la soglia minima. Giacenza attuale: 90.	t	2026-05-28 23:34:23.146014
-147	PROCUREMENT	Stock basso	ATTENZIONE: Prosciutto Cotto Rovagnati 100g è sceso sotto la soglia minima. Giacenza attuale: 100.	t	2026-05-28 23:31:13.850649
-146	PROCUREMENT	Sollecito rifornimento da magazzino	Antonio richiede urgentemente un rifornimento di Prosciutto Cotto Rovagnati 100g. Giacenza attuale: 130, soglia minima: 200.	t	2026-05-28 23:30:58.180355
+4	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780255300165 - Importo: 28.50	t	2026-05-31 19:21:41.455324
+6	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780255315651 - Importo: 1.30	t	2026-05-31 19:21:55.921835
+8	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780255328275 - Importo: 1.90	t	2026-05-31 19:22:08.286056
+1	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780255300165 - Importo: 28.50	t	2026-05-31 19:21:41.442955
+5	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780255315651 - Importo: 1.30	t	2026-05-31 19:21:55.915288
+7	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780255328275 - Importo: 1.90	t	2026-05-31 19:22:08.277847
+3	PROCUREMENT	Ordine inviato	Nuovo ordine creato: ORD-1780255301451 - Importo: 28.50	t	2026-05-31 19:21:41.454464
+2	INVENTORY	Nuovo ordine in arrivo	Nuovo ordine creato: ORD-1780255301451 - Importo: 28.50	t	2026-05-31 19:21:41.440052
+9	PROCUREMENT	Merce ricevuta in deposito	Antonio ha confermato la ricezione di 1 unità di Salame Milano 100g per l'ordine ORD-1780255328275.	f	2026-05-31 19:22:59.588303
+10	PROCUREMENT	Merce ricevuta in deposito	Antonio ha confermato la ricezione di 1 unità di Latte Parmalat 1L per l'ordine ORD-1780255315651.	f	2026-05-31 19:23:00.835155
+11	PROCUREMENT	Merce ricevuta in deposito	Antonio ha confermato la ricezione di 15 unità di Salame Milano 100g per l'ordine ORD-1780255301451.	f	2026-05-31 19:23:01.93815
+12	PROCUREMENT	Merce ricevuta in deposito	Antonio ha confermato la ricezione di 15 unità di Salame Milano 100g per l'ordine ORD-1780255300165.	f	2026-05-31 19:23:03.103675
+13	POS	Merce spedita al punto vendita	Il magazzino ha spedito 31 unità di Salame Milano 100g al punto vendita Taasselunga Torino - Via Po.	t	2026-05-31 19:23:47.31748
 \.
 
 
 --
--- TOC entry 3416 (class 0 OID 0)
+-- TOC entry 3420 (class 0 OID 0)
 -- Dependencies: 215
 -- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: root
 --
 
-SELECT pg_catalog.setval('public.notifications_id_seq', 151, true);
+SELECT pg_catalog.setval('public.notifications_id_seq', 13, true);
 
 
--- Completed on 2026-05-30 20:07:40
+--
+-- TOC entry 3268 (class 2606 OID 24586)
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: root
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+-- Completed on 2026-05-31 23:21:00
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 9hr6qwARZFDklvz6O6VKqwrriGhmtrDnDEuiM8x5HbZ2kDxXXPKkfjVOrAr4yZg
+\unrestrict aOFUH8K4eYAvvhkmdVGcaXtk0UVTXtGYLgWTyeoklk9SeSge07xoo4XdnDJ3whH
 

@@ -199,6 +199,15 @@ export default function PosProductsPage() {
                 throw new Error(`Errore invio richiesta: ${response.status} ${text}`);
             }
 
+            await sendPosNotification(product.name);
+
+            setModal({
+                isOpen: true,
+                title: "Richiesta Inviata",
+                message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`,
+                type: "success"
+            });
+
             setModal({ isOpen: true, title: "Richiesta Inviata", message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`, type: "success" });
         } catch (error) {
             console.error("Errore invio richiesta rifornimento:", error);

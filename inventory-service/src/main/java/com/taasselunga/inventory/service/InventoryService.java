@@ -3,7 +3,6 @@ package com.taasselunga.inventory.service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Base64;
-
 import com.taasselunga.inventory.config.RabbitMQConfig;
 import com.taasselunga.inventory.domain.Product;
 import com.taasselunga.inventory.domain.Quantity;
@@ -12,9 +11,7 @@ import com.taasselunga.inventory.domain.StockThreshold;
 import com.taasselunga.inventory.dto.ProductResponseDTO;
 import com.taasselunga.inventory.repository.ProductRepository;
 import com.taasselunga.inventory.repository.StockRepository;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,50 +45,28 @@ public class InventoryService {
                     ? Base64.getEncoder().encodeToString(product.getImage())
                     : null;
 
-            return new ProductResponseDTO(
-                    product.getId(),
-                    product.getName(),
-                    product.getCategory(),
-                    qty,
-                    threshold,
-                    product.getPrice(),
-                    imageBase64,
-                    product.getBarcode()
-            );
+            return new ProductResponseDTO(product.getId(), product.getName(), product.getCategory(), qty, threshold, product.getPrice(), imageBase64, product.getBarcode());
         });
     }
 
-    // --- LOGICA PER IL PALMARE DI ANTONIO ---
+    //receiveGoods() è invocato da ProcurementService.updateOrderStatus() tramite REST
+    //receiveGoods() aggiorna anche lo stock dei prodotti nel magazzino e pubblica eventi asincroni rabbitmq
     @Transactional
     public void receiveGoods(Long productId, Integer quantityValue) {
 
-        Stock stock = stockRepository.findByProductId(productId)
-                .orElseThrow(() ->
-                        new RuntimeException("Prodotto non trovato in magazzino")
-                );
+        Stock stock = stockRepository.findByProductId(productId).orElseThrow(() -> new RuntimeException("Prodotto non trovato in magazzino"));
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() ->
-                        new RuntimeException("Prodotto non trovato")
-                );
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Prodotto non trovato"));
 
         // Aggiornamento istantaneo delle giacenze
         stock.increase(new Quantity(quantityValue));
 
         stockRepository.save(stock);
 
-        System.out.println(
-                "Merce ricevuta per " + product.getName()
-                        + ". Nuova giacenza: "
-                        + stock.getAvailableQuantity().getValue()
-        );
+        System.out.println("Merce ricevuta per " + product.getName() + ". Nuova giacenza: " + stock.getAvailableQuantity().getValue());
 
         // Notifica ad Alessia: Antonio ha registrato la merce nel deposito
-        String receivedMessage = String.format(
-                "Antonio ha registrato %d unità di %s nel deposito centrale.",
-                quantityValue,
-                product.getName()
-        );
+        String receivedMessage = String.format("Antonio ha registrato %d unità di %s nel deposito centrale.", quantityValue, product.getName());
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_NAME,
@@ -104,11 +79,7 @@ public class InventoryService {
         // Controllo soglia e notifica asincrona via RabbitMQ
         if (stock.isBelowThreshold()) {
 
-            String message = String.format(
-                    "%s è sotto scorta. Giacenza attuale: %d.",
-                    product.getName(),
-                    stock.getAvailableQuantity().getValue()
-            );
+            String message = String.format("%s è sotto scorta. Giacenza attuale: %d.", product.getName(), stock.getAvailableQuantity().getValue());
 
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_NAME,
@@ -121,42 +92,19 @@ public class InventoryService {
     }
 
     @Transactional
-    public void addProduct(
-            String name,
-            String category,
-            Double price,
-            String barcode,
-            Integer initialStock,
-            Integer threshold,
-            MultipartFile image
-    ) {
+    public void addProduct(String name, String category, Double price, String barcode, Integer initialStock, Integer threshold, MultipartFile image) {
 
         try {
-
-            Product product = new Product(
-                    name,
-                    category,
-                    price,
-                    image.getBytes(),
-                    barcode
-            );
+            Product product = new Product(name, category, price, image.getBytes(), barcode);
 
             product = productRepository.save(product);
 
-            Stock stock = new Stock(
-                    product.getId(),
-                    new Quantity(initialStock),
-                    new StockThreshold(threshold)
-            );
+            Stock stock = new Stock(product.getId(), new Quantity(initialStock), new StockThreshold(threshold));
 
             stockRepository.save(stock);
 
         } catch (IOException e) {
-
-            throw new RuntimeException(
-                    "Errore nella lettura dell'immagine",
-                    e
-            );
+            throw new RuntimeException("Errore nella lettura dell'immagine", e);
         }
     }
 
@@ -165,9 +113,7 @@ public class InventoryService {
 
         // Controllo sulla quantità non negativa
         if (quantitySold == null || quantitySold <= 0) {
-            throw new IllegalArgumentException(
-                    "La quantità da scalare deve essere positiva"
-            );
+            throw new IllegalArgumentException("La quantità da scalare deve essere positiva");
         }
 
         // Recupero prodotto
@@ -190,23 +136,12 @@ public class InventoryService {
 
         stockRepository.save(stock);
 
-        System.out.println(
-                "Scalati "
-                        + quantitySold
-                        + " pezzi di "
-                        + product.getName()
-                        + ". Nuova giacenza: "
-                        + stock.getAvailableQuantity().getValue()
-        );
+        System.out.println("Scalati " + quantitySold + " pezzi di " + product.getName() + ". Nuova giacenza: " + stock.getAvailableQuantity().getValue());
 
         // Controllo soglia minima
         if (stock.isBelowThreshold()) {
 
-            String alertMsg = String.format(
-                    "ATTENZIONE: %s è sceso sotto la soglia minima. Giacenza attuale: %d.",
-                    product.getName(),
-                    stock.getAvailableQuantity().getValue()
-            );
+            String alertMsg = String.format("ATTENZIONE: %s è sceso sotto la soglia minima. Giacenza attuale: %d.", product.getName(), stock.getAvailableQuantity().getValue());
 
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.EXCHANGE_NAME,
@@ -214,10 +149,7 @@ public class InventoryService {
                     alertMsg
             );
 
-            System.out.println(
-                    "Allarme inviato a RabbitMQ per "
-                            + product.getName()
-            );
+            System.out.println("Allarme inviato a RabbitMQ per " + product.getName());
         }
     }
 }

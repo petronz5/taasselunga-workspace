@@ -31,33 +31,19 @@ public class InventoryClient {
     }
 
     public void deductStock(Long productId, Integer quantity, String token) {
-        String url = inventoryServiceUrl
-                + "/api/inventory/"
-                + productId
-                + "/deduct?quantity="
-                + quantity;
+        String url = inventoryServiceUrl + "/api/inventory/" + productId + "/deduct?quantity=" + quantity;
 
         HttpEntity<Void> entity = new HttpEntity<>(createAuthHeaders(token));
 
         restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
     }
 
-    public void sendReplenishmentRequest(
-            Long storeId,
-            Long productId,
-            Integer quantity,
-            String token
-    ) {
+    public void sendReplenishmentRequest(Long storeId, Long productId, Integer quantity, String token) {
         String url = inventoryServiceUrl + "/api/inventory/replenishment";
 
-        ReplenishmentRequestDto dto = new ReplenishmentRequestDto(
-                productId,
-                quantity,
-                storeId
-        );
+        ReplenishmentRequestDto dto = new ReplenishmentRequestDto(productId, quantity, storeId);
 
-        HttpEntity<ReplenishmentRequestDto> entity =
-                new HttpEntity<>(dto, createAuthHeaders(token));
+        HttpEntity<ReplenishmentRequestDto> entity = new HttpEntity<>(dto, createAuthHeaders(token));
 
         restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
     }

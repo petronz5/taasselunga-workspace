@@ -25,12 +25,7 @@ public class PointOfSaleService {
     private final StoreStockRepository storeStockRepository;
 
     @Transactional
-    public ReplenishmentRequest createReplenishmentRequest(
-            Long storeId,
-            Long productId,
-            Integer quantity,
-            String token
-    ) {
+    public ReplenishmentRequest createReplenishmentRequest(Long storeId, Long productId, Integer quantity, String token) {
         ReplenishmentRequest request = new ReplenishmentRequest(storeId, productId, quantity);
         ReplenishmentRequest savedRequest = requestRepository.save(request);
 
@@ -74,11 +69,7 @@ public class PointOfSaleService {
     }
 
     @Transactional
-    public ReplenishmentRequest updateRequestStatus(
-            Long id,
-            String status,
-            String token
-    ) {
+    public ReplenishmentRequest updateRequestStatus(Long id, String status, String token) {
         ReplenishmentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Richiesta non trovata"));
 
@@ -107,12 +98,7 @@ public class PointOfSaleService {
     }
 
     @Transactional
-    public void prepareShipment(
-            Long storeId,
-            Long productId,
-            Integer quantity,
-            String token
-    ) {
+    public void prepareShipment(Long storeId, Long productId, Integer quantity, String token) {
         if (productId == null || quantity == null) {
             throw new RuntimeException(
                     "Prodotto o quantità mancanti"
@@ -151,12 +137,7 @@ public class PointOfSaleService {
 
         String productName = getProductName(productId, token);
 
-        String message = String.format(
-                "Spedizione preparata verso punto vendita %d: %d unità di %s.",
-                storeId,
-                quantity,
-                productName
-        );
+        String message = String.format("Spedizione preparata verso punto vendita %d: %d unità di %s.", storeId, quantity, productName);
 
         System.out.println("Spedizione preparata: " + message);
     }

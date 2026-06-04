@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,12 +17,12 @@ public class ProcurementService {
 
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final RabbitTemplate rabbitTemplate;
-    private final RestTemplate restTemplate;
 
     public List<PurchaseOrder> getAllOrders() {
         return purchaseOrderRepository.findAll();
     }
 
+    //Create purchaseorder
     @Transactional
     public PurchaseOrder addOrder(PurchaseOrder order) {
         order.setOrderDate(LocalDateTime.now());
@@ -34,8 +33,7 @@ public class ProcurementService {
 
         PurchaseOrder savedOrder = purchaseOrderRepository.save(order);
 
-        String message = "Nuovo ordine creato: " + savedOrder.getOrderNumber() +
-                " - Importo: " + String.format("%.2f", savedOrder.getTotalAmount());
+        String message = "Nuovo ordine creato: " + savedOrder.getOrderNumber() + " - Importo: " + String.format("%.2f", savedOrder.getTotalAmount());
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_NAME,
@@ -50,8 +48,8 @@ public class ProcurementService {
 
     @Transactional
     public PurchaseOrder updateOrderStatus(Long orderId, String status) {
-        PurchaseOrder order = purchaseOrderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Ordine non trovato"));
+
+        PurchaseOrder order = purchaseOrderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Ordine non trovato"));
 
         String oldStatus = order.getStatus();
 
@@ -67,19 +65,8 @@ public class ProcurementService {
 
         if (isNowDelivered && !wasAlreadyDelivered) {
             if (order.getProductId() == null || order.getQuantity() == null) {
-                throw new RuntimeException(
-                        "Impossibile aggiornare stock: prodotto o quantità mancanti"
-                );
+                throw new RuntimeException("Impossibile aggiornare stock: prodotto o quantità mancanti");
             }
-
-            restTemplate.postForObject(
-                    "http://inventory-service:8081/api/inventory/internal/receive?productId="
-                            + order.getProductId()
-                            + "&quantity="
-                            + order.getQuantity(),
-                    null,
-                    String.class
-            );
         }
 
         return savedOrder;

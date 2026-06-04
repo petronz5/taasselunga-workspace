@@ -79,15 +79,7 @@ public class InventoryController {
         return ResponseEntity.ok("Giacenza aggiornata.");
     }
 
-    // Endpoint interno per comunicazione diretta Procurement → Inventory
-    @PostMapping("/internal/receive")
-    public ResponseEntity<String> receiveGoodsInternal(
-            @RequestParam Long productId,
-            @RequestParam Integer quantity
-    ) {
-        inventoryService.receiveGoods(productId, quantity);
-        return ResponseEntity.ok("Merce ricevuta internamente e giacenze aggiornate.");
-    }
+
 
     @PostMapping("/replenishment")
     public ResponseEntity<Void> receiveReplenishmentRequest(
