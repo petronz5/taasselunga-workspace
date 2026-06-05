@@ -139,18 +139,13 @@ export default function InventoryPage() {
         try {
             setNotifyingProductId(product.id);
 
-            const response = await fetch(`${API_BASE_URL}/api/notifications`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...getAuthHeaders(),
-                },
-                body: JSON.stringify({
-                    targetRole: "PROCUREMENT",
-                    title: "Sollecito approvvigionamento",
-                    message: `Antonio segnala prodotto sotto soglia: ${product.name}. Giacenza attuale: ${product.stockQuantity}, soglia minima: ${product.reorderThreshold}.`,
-                }),
-            });
+            const response = await fetch(
+                `${API_BASE_URL}/api/inventory/${product.id}/low-stock-alert`,
+                {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                }
+            );
 
             if (!response.ok) {
                 throw new Error("Errore invio notifica");

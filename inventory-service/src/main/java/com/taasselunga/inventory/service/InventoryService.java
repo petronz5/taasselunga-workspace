@@ -66,7 +66,7 @@ public class InventoryService {
         System.out.println("Merce ricevuta per " + product.getName() + ". Nuova giacenza: " + stock.getAvailableQuantity().getValue());
 
         // Notifica ad Alessia: Antonio ha registrato la merce nel deposito
-        String receivedMessage = String.format("Antonio ha registrato %d unità di %s nel deposito centrale.", quantityValue, product.getName());
+        String receivedMessage = String.format("Il magazzino ha registrato %d unità di %s nel deposito centrale.", quantityValue, product.getName());
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_NAME,
@@ -152,4 +152,30 @@ public class InventoryService {
             System.out.println("Allarme inviato a RabbitMQ per " + product.getName());
         }
     }
+
+
+    @Transactional(readOnly = true)
+    public void notifyLowStock(Long productId) {
+        Stock stock = stockRepository.findByProductId(productId)
+                .orElseThrow(() -> new RuntimeException("Prodotto non trovato in magazzino"));
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Prodotto non trovato"));
+
+        String message = String.format(
+                "Il magazzino segnala prodotto sotto soglia: %s. Giacenza attuale: %d, soglia minima: %d.",
+                product.getName(),
+                stock.getAvailableQuantity().getValue(),
+                stock.getThreshold().getMinimumLevel()
+        );
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EXCHANGE_NAME,
+                RabbitMQConfig.LOW_STOCK_ROUTING_KEY,
+                message
+        );
+
+        System.out.println("Sollecito approvvigionamento inviato via RabbitMQ: " + message);
+    }
+
 }

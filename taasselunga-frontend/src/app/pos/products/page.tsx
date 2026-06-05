@@ -174,12 +174,22 @@ export default function PosProductsPage() {
         const quantity = quantities[product.id] ?? 1;
 
         if (quantity <= 0) {
-            setModal({ isOpen: true, title: "Quantità Non Valida", message: "Fissa una quantità maggiore di zero per procedere", type: "info" });
+            setModal({
+                isOpen: true,
+                title: "Quantità Non Valida",
+                message: "Fissa una quantità maggiore di zero per procedere",
+                type: "info",
+            });
             return;
         }
 
         if (quantity > product.stockQuantity) {
-            setModal({ isOpen: true, title: "Giacenza Insufficiente", message: `La quantità inserita supera la disponibilità del magazzino centrale (${product.stockQuantity})`, type: "error" });
+            setModal({
+                isOpen: true,
+                title: "Giacenza Insufficiente",
+                message: `La quantità inserita supera la disponibilità del magazzino centrale (${product.stockQuantity})`,
+                type: "error",
+            });
             return;
         }
 
@@ -199,19 +209,21 @@ export default function PosProductsPage() {
                 throw new Error(`Errore invio richiesta: ${response.status} ${text}`);
             }
 
-            await sendPosNotification(product.name);
-
             setModal({
                 isOpen: true,
                 title: "Richiesta Inviata",
                 message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`,
-                type: "success"
+                type: "success",
             });
-
-            setModal({ isOpen: true, title: "Richiesta Inviata", message: `La richiesta di rifornimento per ${product.name} è stata inoltrata`, type: "success" });
         } catch (error) {
             console.error("Errore invio richiesta rifornimento:", error);
-            setModal({ isOpen: true, title: "Errore di Invio", message: "Si è verificato un problema durante la trasmissione della richiesta", type: "error" });
+
+            setModal({
+                isOpen: true,
+                title: "Errore di Invio",
+                message: "Si è verificato un problema durante la trasmissione della richiesta",
+                type: "error",
+            });
         } finally {
             setSubmittingProductId(null);
         }

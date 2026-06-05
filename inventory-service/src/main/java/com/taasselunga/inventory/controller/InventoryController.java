@@ -90,4 +90,11 @@ public class InventoryController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
+    @PostMapping("/{productId}/low-stock-alert")
+    public ResponseEntity<String> notifyLowStock(@PathVariable Long productId) {
+        inventoryService.notifyLowStock(productId);
+        return ResponseEntity.ok("Sollecito approvvigionamento inviato via RabbitMQ.");
+    }
 }

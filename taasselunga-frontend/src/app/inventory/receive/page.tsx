@@ -155,18 +155,17 @@ export default function ReceiveGoodsPage() {
                 throw new Error("Errore aggiornamento stato ordine");
             }
 
-            await fetch("http://localhost:8080/api/notifications", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...getAuthHeaders(),
-                },
-                body: JSON.stringify({
-                    targetRole: "PROCUREMENT",
-                    title: "Merce ricevuta in deposito",
-                    message: `Antonio ha confermato la ricezione di ${order.quantity} unità di ${order.productName || "prodotto"} per l'ordine ${order.orderNumber}.`,
-                }),
-            });
+            const receiveResponse = await fetch(
+                `http://localhost:8080/api/inventory/receive?productId=${order.productId}&quantity=${order.quantity}`,
+                {
+                    method: "POST",
+                    headers: getAuthHeaders(),
+                }
+            );
+
+            if (!receiveResponse.ok) {
+                throw new Error("Errore aggiornamento giacenza");
+            }
 
             setModal({
                 isOpen: true,

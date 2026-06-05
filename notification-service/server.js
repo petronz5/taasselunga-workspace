@@ -2,15 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const amqp = require("amqplib");
-
-const {
-    initNotificationsTable,
-    createNotification,
-    getNotificationsByRole,
-    markNotificationAsRead,
-    deleteNotificationsByRole,
-} = require("./db/notificationRepository");
-
+const {initNotificationsTable, createNotification, getNotificationsByRole, markNotificationAsRead, deleteNotificationsByRole,} = require("./db/notificationRepository");
 const app = express();
 const server = http.createServer(app);
 
@@ -26,10 +18,19 @@ const io = new Server(server, {
 const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://guest:guest@localhost:5672";
 const EXCHANGE_NAME = "taasselunga-exchange";
 
+//Evento pubblicato da Inventory quando un prodotto scende sotto la soglia minima (LowStockDetected)
 const STOCK_ROUTING_KEY = "stock.low";
+
+//Evento pubblicato da POS quando Luigi crea una nuova richiesta di rifornimento verso il deposito centrale (ReplenishmentRequestCreated).
 const POS_ROUTING_KEY = "pos";
+
+//Evento pubblicato da Procurement quando viene creato un nuovo ordine di approvvigionamento verso un fornitore esterno (PurchaseOrderCreated).
 const PROCUREMENT_ROUTING_KEY = "purchase.order.created";
 
+//Evento pubblicato da Inventory quando la merce viene ricevuta e registrata nel deposito centrale, con conseguente aggiornamento delle giacenze di magazzino (StockUpdated / GoodsReceived).
+const GOODS_RECEIVED_ROUTING_KEY = "procurement.notification";
+
+//Coda di Notification che riceve e consuma tutti gli eventi ^ di dominio rilevanti per la generazione e distribuzione delle notifiche real-time WebSocket.
 const NOTIFICATION_QUEUE = "notification.stock.queue";
 
 app.post("/notifications", async (req, res) => {
@@ -136,6 +137,10 @@ function getTargetRoleFromRoutingKey(routingKey) {
         return "INVENTORY";
     }
 
+    if (routingKey === GOODS_RECEIVED_ROUTING_KEY) {
+        return "PROCUREMENT";
+    }
+
     if (routingKey === POS_ROUTING_KEY) {
         return "INVENTORY";
     }
@@ -150,6 +155,10 @@ function getTargetRoleFromRoutingKey(routingKey) {
 function getTitleFromRoutingKey(routingKey) {
     if (routingKey === PROCUREMENT_ROUTING_KEY) {
         return "Nuovo ordine in arrivo";
+    }
+
+    if (routingKey === GOODS_RECEIVED_ROUTING_KEY) {
+        return "Merce ricevuta";
     }
 
     if (routingKey === POS_ROUTING_KEY) {
@@ -174,6 +183,7 @@ async function connectRabbitMQ() {
         await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, STOCK_ROUTING_KEY);
         await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, POS_ROUTING_KEY);
         await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, PROCUREMENT_ROUTING_KEY);
+        await channel.bindQueue(NOTIFICATION_QUEUE, EXCHANGE_NAME, GOODS_RECEIVED_ROUTING_KEY);
 
         console.log("Notification Service in ascolto sulla coda:", NOTIFICATION_QUEUE);
         console.log("Routing keys ascoltate:", STOCK_ROUTING_KEY, POS_ROUTING_KEY, PROCUREMENT_ROUTING_KEY);
