@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/inventory")
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    // Accessibile a RESPONSABILE_APPROVVIGIONAMENTO e OPERATORE_DI_MAGAZZINO
+    //Pagina dei prodotti del magazzino con le relative giacenze
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'RESPONSABILE_PUNTO_VENDITA')")
     @GetMapping("/products")
     public ResponseEntity<Page<ProductResponseDTO>> getAllProducts(
@@ -30,7 +28,7 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getAllProductsWithStock(page, size));
     }
 
-    // Solo OPERATORE_DI_MAGAZZINO può registrare la merce
+    //Registra merce in arrivo nel magazzino e aggiorna lo stock centrale
     @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
     @PostMapping("/receive")
     public ResponseEntity<String> receiveGoods(
@@ -41,7 +39,7 @@ public class InventoryController {
         return ResponseEntity.ok("Merce registrata con successo e giacenze aggiornate.");
     }
 
-    // Solo RESPONSABILE_APPROVVIGIONAMENTO può aggiungere nuovi prodotti
+    //Aggiunge un nuovo prodotto al catalogo
     @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
     @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> addProduct(
@@ -58,7 +56,7 @@ public class InventoryController {
         return ResponseEntity.ok("Prodotto aggiunto con successo");
     }
 
-    // RESPONSABILE_APPROVVIGIONAMENTO, OPERATORE_DI_MAGAZZINO e RESPONSABILE_PUNTO_VENDITA possono aggiornare le giacenze
+    //Scala una quantità dallo stock e controlla eventuali soglie minime
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO', 'RESPONSABILE_PUNTO_VENDITA')")
     @PutMapping("/{productId}/deduct")
     public ResponseEntity<String> deductStock(
@@ -69,28 +67,16 @@ public class InventoryController {
         return ResponseEntity.ok("Giacenza aggiornata e controlli scorta effettuati.");
     }
 
-    // Endpoint interno per comunicazione diretta tra microservizi POS → Inventory
-    @PutMapping("/internal/{productId}/deduct")
-    public ResponseEntity<String> deductStockInternal(
-            @PathVariable Long productId,
-            @RequestParam Integer quantity
-    ) {
-        inventoryService.deductStock(productId, quantity);
-        return ResponseEntity.ok("Giacenza aggiornata.");
-    }
-
-
-
+    //Richiesta di rifornimento inviata dal POS al magazzino centrale
     @PostMapping("/replenishment")
     public ResponseEntity<Void> receiveReplenishmentRequest(
             @RequestBody ReplenishmentRequestDto request
     ) {
-        // per ora anche solo log va bene
         System.out.println("Replenishment request received from POS: " + request);
-
         return ResponseEntity.ok().build();
     }
 
+    //Sollecito di approvvigionamento dal magazzino verso l'approvvig. per un prodotto sotto scorta
     @PreAuthorize("hasRole('OPERATORE_DI_MAGAZZINO')")
     @PostMapping("/{productId}/low-stock-alert")
     public ResponseEntity<String> notifyLowStock(@PathVariable Long productId) {

@@ -6,8 +6,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public class RestConfig {
-
-    //Fa comunicare Procurement Service con Inventory Service
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();

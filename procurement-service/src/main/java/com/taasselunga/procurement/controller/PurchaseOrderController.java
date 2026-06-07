@@ -16,21 +16,21 @@ public class PurchaseOrderController {
 
     private final ProcurementService procurementService;
 
-    // RESPONSABILE_APPROVVIGIONAMENTO può visualizzare gli ordini
+    //Lista degli ordini di approvvigionamento (utili per storico e per seguire l'avanzamento)
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @GetMapping
     public ResponseEntity<List<PurchaseOrder>> getOrders() {
         return ResponseEntity.ok(procurementService.getAllOrders());
     }
 
-    // RESPONSABILE_APPROVVIGIONAMENTO può creare ordini di approvvigionamento
+    //Creaz. di un nuovo ordine di approvvigionamento
     @PreAuthorize("hasRole('RESPONSABILE_APPROVVIGIONAMENTO')")
     @PostMapping
     public ResponseEntity<PurchaseOrder> addOrder(@RequestBody PurchaseOrder order) {
         return ResponseEntity.ok(procurementService.addOrder(order));
     }
 
-    // RESPONSABILE_APPROVVIGIONAMENTO può aggiornare lo stato ordine
+    //Aggiornamento dello stato di un ordine esistente
     @PreAuthorize("hasAnyRole('RESPONSABILE_APPROVVIGIONAMENTO', 'OPERATORE_DI_MAGAZZINO')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<PurchaseOrder> updateStatus(

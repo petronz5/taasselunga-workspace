@@ -7,13 +7,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String PROCUREMENT_QUEUE = "low-stock-queue";
-
+    //Unico Exchange
     public static final String EXCHANGE_NAME = "taasselunga-exchange";
 
+    //Coda per prodotto sotto soglia
+    public static final String PROCUREMENT_QUEUE = "low-stock-queue";
+
+    //Prima routing key associata a Procurement (prodotto sotto soglia)
     public static final String ROUTING_KEY = "stock.low";
 
-    // NUOVA ROUTING KEY
+    //Seconda routing key associata a Procurement (ordine approvvig. creato)
     public static final String PURCHASE_ORDER_ROUTING_KEY = "purchase.order.created";
 
     @Bean
